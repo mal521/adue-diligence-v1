@@ -2099,8 +2099,9 @@ function sanitizeFilePartNoHyphen(str) {
     .replace(/[^a-zA-Z0-9]/g, ""); // remove punctuation/special chars
 }
 
-// ===== BANKER EXPORT HELPERS + STYLES (paste above exportXLSX) =====
-const BANKER_PW = "model"; // optional: change or leave
+// ===== BANKER EXPORT HELPERS + STYLES (clean v3) =====
+const BANKER_PW = "model";
+const BASE_FONT = "Avenir Next"; // if not installed, Excel will substitute (usually Calibri)
 
 function sanitizeFilePartNoHyphen(str) {
   return (str || "")
@@ -2125,242 +2126,218 @@ function styleRange(ws, rangeA1, style) {
 }
 
 const BORDER_THIN = {
-  top: { style: "thin", color: { rgb: "FFCBD5E1" } },
-  bottom: { style: "thin", color: { rgb: "FFCBD5E1" } },
-  left: { style: "thin", color: { rgb: "FFCBD5E1" } },
-  right: { style: "thin", color: { rgb: "FFCBD5E1" } },
+  top: { style: "thin", color: { rgb: "FFD1D5DB" } },
+  bottom: { style: "thin", color: { rgb: "FFD1D5DB" } },
+  left: { style: "thin", color: { rgb: "FFD1D5DB" } },
+  right: { style: "thin", color: { rgb: "FFD1D5DB" } },
 };
 
-const BORDER_THICK_BLACK = {
-  top: { style: "thick", color: { rgb: "FF000000" } },
-  bottom: { style: "thick", color: { rgb: "FF000000" } },
-  left: { style: "thick", color: { rgb: "FF000000" } },
-  right: { style: "thick", color: { rgb: "FF000000" } },
+const BORDER_MEDIUM_DARK = {
+  top: { style: "medium", color: { rgb: "FF111827" } },
+  bottom: { style: "medium", color: { rgb: "FF111827" } },
+  left: { style: "medium", color: { rgb: "FF111827" } },
+  right: { style: "medium", color: { rgb: "FF111827" } },
 };
 
 const STY = {
   title: {
-    font: { name: "Calibri", sz: 16, bold: true, color: { rgb: "FFFFFFFF" } },
+    font: { name: BASE_FONT, sz: 16, bold: true, color: { rgb: "FFFFFFFF" } },
+    fill: { patternType: "solid", fgColor: { rgb: "FF0B1220" } },
+    alignment: { horizontal: "left", vertical: "center" },
+  },
+  bar: {
+    font: { name: BASE_FONT, sz: 11, bold: true, color: { rgb: "FFFFFFFF" } },
     fill: { patternType: "solid", fgColor: { rgb: "FF111827" } },
     alignment: { horizontal: "left", vertical: "center" },
   },
-  section: {
-    font: { name: "Calibri", sz: 11, bold: true, color: { rgb: "FFFFFFFF" } },
-    fill: { patternType: "solid", fgColor: { rgb: "FF1F2937" } },
-    alignment: { horizontal: "left", vertical: "center" },
-  },
   header: {
-    font: { name: "Calibri", sz: 11, bold: true, color: { rgb: "FFFFFFFF" } },
-    fill: { patternType: "solid", fgColor: { rgb: "FF1F2937" } },
+    font: { name: BASE_FONT, sz: 10, bold: true, color: { rgb: "FFFFFFFF" } },
+    fill: { patternType: "solid", fgColor: { rgb: "FF111827" } },
     alignment: { horizontal: "center", vertical: "center", wrapText: true },
     border: BORDER_THIN,
   },
   label: {
-    font: { name: "Calibri", sz: 10, color: { rgb: "FF111827" } },
-    fill: { patternType: "solid", fgColor: { rgb: "FFF3F4F6" } },
+    font: { name: BASE_FONT, sz: 10, bold: false, color: { rgb: "FF111827" } },
+    fill: { patternType: "solid", fgColor: { rgb: "FFF8FAFC" } },
     alignment: { horizontal: "left", vertical: "center" },
     border: BORDER_THIN,
   },
   note: {
-    font: { name: "Calibri", sz: 9, color: { rgb: "FF4B5563" } },
+    font: { name: BASE_FONT, sz: 9, color: { rgb: "FF475569" } },
     fill: { patternType: "solid", fgColor: { rgb: "FFFFFFFF" } },
     alignment: { horizontal: "left", vertical: "top", wrapText: true },
     border: BORDER_THIN,
   },
   input: {
-    font: { name: "Calibri", sz: 10, color: { rgb: "FF0B2D39" } },
-    fill: { patternType: "solid", fgColor: { rgb: "FFD9EAF7" } }, // banker blue
+    font: { name: BASE_FONT, sz: 10, color: { rgb: "FF0B2D39" } },
+    fill: { patternType: "solid", fgColor: { rgb: "FFD9EAF7" } },
     alignment: { horizontal: "left", vertical: "center" },
     border: BORDER_THIN,
     protection: { locked: false },
   },
   calc: {
-    font: { name: "Calibri", sz: 10, color: { rgb: "FF111827" } },
-    fill: { patternType: "solid", fgColor: { rgb: "FFF3F4F6" } }, // grey
+    font: { name: BASE_FONT, sz: 10, color: { rgb: "FF111827" } },
+    fill: { patternType: "solid", fgColor: { rgb: "FFF3F4F6" } },
     alignment: { horizontal: "left", vertical: "center" },
     border: BORDER_THIN,
     protection: { locked: true },
   },
   box: {
-    border: BORDER_THICK_BLACK,
+    border: BORDER_MEDIUM_DARK, // thinner than thick black
   }
 };
   
 function exportXLSX() {
   const wb = XLSX.utils.book_new();
-  wb.Workbook = wb.Workbook || {};
-  wb.Workbook.CalcPr = { fullCalcOnLoad: true }; // Excel recalcs formulas on open
 
-  // Pull current in-site model (used as cached values so the export looks correct instantly)
+  // Recalc formulas on open + remove gridlines (workbook-level)
+  wb.Workbook = wb.Workbook || {};
+  wb.Workbook.CalcPr = { fullCalcOnLoad: true };
+  wb.Workbook.Views = [{ showGridLines: false }];
+
   const model = buildCashFlows();
   const years = model.years;
   const H = model.holdYears;
 
-  // Address (used in Summary + filename)
   const streetNo = document.getElementById("addr-number")?.value || "";
   const streetName = document.getElementById("addr-street")?.value || "";
   const addressLine = (streetNo + " " + streetName).trim();
 
-  // ============================================================
-  // README TAB (new user explanations)
-  // ============================================================
+  // =========================
+  // README
+  // =========================
   const readmeText = [
     ["READ ME — How to use this exported Excel model"],
     [""],
-    ["What this file is:"],
-    ["This is a standalone real-estate underwriting model. Blue cells are editable inputs. Grey cells are formulas."],
+    ["Blue cells = editable inputs. Grey cells = formulas."],
     [""],
-    ["1) Scenario selector (Inputs!B3)"],
-    ["Type: Base, Downside, or Upside. This does NOT overwrite your original assumptions — it adjusts them via scenario deltas."],
-    ["Example: Downside might lower rents, increase vacancy, reduce appreciation, and increase expenses."],
+    ["Scenario selector (Inputs!B3)"],
+    ["Type Base, Downside, or Upside. The scenario does not overwrite your inputs; it adjusts them to create Effective assumptions."],
     [""],
-    ["2) Inputs vs Assumptions (Inputs tab)"],
-    ["Inputs are concrete deal facts (purchase price, rents). Assumptions are model beliefs (growth, expense ratio, capex reserves)."],
-    ["Scenario changes affect the 'Effective' assumptions used by the model (e.g., effective vacancy, effective rent growth)."],
+    ["Inputs vs Assumptions"],
+    ["Inputs = deal facts (price, rents). Assumptions = beliefs (growth, expenses, appreciation)."],
+    ["The model uses Effective assumptions (scenario-adjusted) to calculate cash flows."],
     [""],
-    ["3) Checks (Summary tab)"],
-    ["Checks are quick red-flag tests (like a banker/lender would do):"],
-    ["- DSCR >= 1.00x: Can NOI cover debt service? Below 1.0 means you need to feed the deal cash."],
-    ["- Year 1 Levered CF >= 0: Are you cash-flow positive in year 1 after debt?"],
-    ["- IRR >= 8%: Example hurdle. Change your hurdle in your head — the model shows the return."],
-    [""],
-    ["Tabs:"],
-    ["Summary = key outputs + checks"],
-    ["Inputs = edit blue cells, see effective assumptions + derived values"],
-    ["Scenarios = edit scenario multipliers/deltas (optional)"],
-    ["Debt = amortization schedule"],
-    ["Cash Flow = yearly P&L and levered cash flow"],
-    [""],
-    ["Tip:"],
-    ["If something looks off, start by confirming Inputs!B3 (Scenario) and the blue cells on Inputs."],
+    ["Checks (Summary tab)"],
+    ["Quick red-flag tests lenders/bankers use (DSCR, Year 1 cash flow, IRR hurdle)."],
   ];
-
   const wsReadme = XLSX.utils.aoa_to_sheet(readmeText);
   wsReadme["!cols"] = [{ wch: 110 }];
   wsReadme["!merges"] = [XLSX.utils.decode_range("A1:A1")];
-
+  wsReadme["!sheetViews"] = [{ showGridLines: false }];
   styleRange(wsReadme, "A1:A1", STY.title);
-  styleRange(wsReadme, "A2:A30", {
-    ...STY.note,
-    alignment: { horizontal: "left", vertical: "top", wrapText: true }
-  });
+  styleRange(wsReadme, "A2:A30", STY.note);
 
-  // ============================================================
-  // SCENARIOS TAB (edit these if you want to customize scenarios)
-  // ============================================================
+  // =========================
+  // SCENARIOS
+  // =========================
   const scenAOA = [
     ["Scenario", "Rent Mult", "Vacancy +", "Rent Growth +", "Appreciation +", "Expense Ratio +"],
     ["Base",      1.00,      0.00,        0.00,           0.00,             0.00],
     ["Downside",  0.92,      0.03,       -0.01,          -0.01,             0.02],
     ["Upside",    1.05,     -0.01,        0.01,           0.01,            -0.01],
     [""],
-    ["How to use:", "", "", "", "", ""],
+    ["How it works:", "", "", "", "", ""],
     ["Inputs!B3 selects a scenario name.", "", "", "", "", ""],
-    ["The model applies these adjustments to create 'Effective' assumptions.", "", "", "", "", ""],
-    ["Example: Effective Vacancy = Base Vacancy + Vacancy Add.", "", "", "", "", ""],
+    ["Effective assumptions on Inputs are adjusted using this table.", "", "", "", "", ""],
   ];
   const wsScen = XLSX.utils.aoa_to_sheet(scenAOA);
   wsScen["!cols"] = [{wch:14},{wch:12},{wch:10},{wch:14},{wch:14},{wch:16}];
-
+  wsScen["!sheetViews"] = [{ showGridLines: false }];
   styleRange(wsScen, "A1:F1", STY.header);
   styleRange(wsScen, "A2:A4", STY.input);
   styleRange(wsScen, "B2:F4", STY.input);
-  styleRange(wsScen, "A6:F9", STY.note);
-
+  styleRange(wsScen, "A6:F8", STY.note);
   wsScen["!protect"] = { password: BANKER_PW, selectLockedCells: true, selectUnlockedCells: true };
 
-  // ============================================================
-  // INPUTS TAB (blue inputs + notes + effective assumptions + derived)
-  // Fixed row layout so formulas are reliable.
-  // Columns: A label, B value, C explanation
-  // ============================================================
+  // =========================
+  // INPUTS (same layout you already had; keeping it stable)
+  // =========================
   const inputsAOA = [
     ["ADUe diligence — Standalone Model", "", ""],
     ["Property", addressLine || "(enter on site)", "Used for labeling + exports."],
-    ["Scenario (Base/Downside/Upside)", "Base", "Type one of: Base, Downside, Upside. Drives Effective assumptions below."],
+    ["Scenario (Base/Downside/Upside)", "Base", "Type Base, Downside, or Upside."],
     ["", "", ""],
 
     ["INPUTS (edit BLUE cells)", "", ""],
-    ["Purchase Price", num("dcf-purchase"), "Deal price paid for the property."],
-    ["ADU Build Cost", num("dcf-adu-cost"), "Total ADU cost (from the site calculator)."],
-    ["Main House Monthly Rent", num("rent-main"), "Monthly rent for the primary unit (today)."],
-    ["ADU Monthly Rent", num("rent-monthly"), "Monthly rent for the ADU (today)."],
-    ["Vacancy Rate", num("rent-vacancy")/100, "Percent of rent lost to vacancy/turnover."],
+    ["Purchase Price", num("dcf-purchase"), ""],
+    ["ADU Build Cost", num("dcf-adu-cost"), ""],
+    ["Main House Monthly Rent", num("rent-main"), ""],
+    ["ADU Monthly Rent", num("rent-monthly"), ""],
+    ["Vacancy Rate", num("rent-vacancy")/100, ""],
     ["", "", ""],
 
     ["ASSUMPTIONS (edit BLUE cells)", "", ""],
-    ["Hold Period (years)", H, "How many years you hold before sale."],
-    ["Annual Rent Growth", num("dcf-rent-growth")/100, "Year-over-year rent growth assumption."],
-    ["Expense Ratio", num("dcf-expense-ratio")/100, "OpEx as % of EGI (rough proxy)."],
-    ["Annual Appreciation", num("dcf-appreciation")/100, "Year-over-year property value growth."],
-    ["Property Tax Rate", num("dcf-tax-rate")/100, "Annual property tax as % of total investment (simple proxy)."],
-    ["Annual Insurance", num("dcf-insurance"), "Year-1 annual insurance. Grows with expense growth."],
-    ["Reserves ($/unit/yr)", num("dcf-reserves"), "Annual reserve per unit (CapEx/repairs bucket)."],
-    ["Management Fee", num("dcf-mgmt")/100, "Property management fee as % of EGI."],
-    ["Annual Expense Growth", num("dcf-expense-growth")/100, "Year-over-year increase in OpEx line items."],
-    ["Sale Costs", num("dcf-sale-costs")/100, "Broker + closing costs on sale (% of sale price)."],
-    ["Units", 2, "Main house + ADU (2 units)."],
-    ["Min Maint Rate (floor)", 0.04, "If Expense Ratio - Mgmt Fee is too low, maintenance uses this floor."],
-    ["Discount Rate (NPV)", 0.08, "Discount rate used for NPV (standard could be 8–12%)."],
+    ["Hold Period (years)", H, ""],
+    ["Annual Rent Growth", num("dcf-rent-growth")/100, ""],
+    ["Expense Ratio", num("dcf-expense-ratio")/100, ""],
+    ["Annual Appreciation", num("dcf-appreciation")/100, ""],
+    ["Property Tax Rate", num("dcf-tax-rate")/100, ""],
+    ["Annual Insurance", num("dcf-insurance"), ""],
+    ["Reserves ($/unit/yr)", num("dcf-reserves"), ""],
+    ["Management Fee", num("dcf-mgmt")/100, ""],
+    ["Annual Expense Growth", num("dcf-expense-growth")/100, ""],
+    ["Sale Costs", num("dcf-sale-costs")/100, ""],
+    ["Units", 2, ""],
+    ["Min Maint Rate (floor)", 0.04, ""],
+    ["Discount Rate (NPV)", 0.08, ""],
     ["", "", ""],
 
     ["LOAN TERMS (edit BLUE cells)", "", ""],
-    ["LTV", num("dcf-ltv")/100, "Loan-to-value. Higher LTV = more leverage."],
-    ["Interest Rate", num("dcf-rate")/100, "Annual interest rate."],
-    ["Amortization (years)", num("dcf-amort"), "Loan amortization length."],
-    ["Closing Costs", num("dcf-closing")/100, "Buyer closing costs as % of total investment."],
+    ["LTV", num("dcf-ltv")/100, ""],
+    ["Interest Rate", num("dcf-rate")/100, ""],
+    ["Amortization (years)", num("dcf-amort"), ""],
+    ["Closing Costs", num("dcf-closing")/100, ""],
     ["", "", ""],
 
     ["TAX ASSUMPTIONS (edit BLUE cells)", "", ""],
-    ["Marginal Income Tax Rate", num("dcf-income-tax")/100, "Used for tax savings estimate from depreciation/interest."],
-    ["Land Value %", num("dcf-land-pct")/100, "Land is not depreciable; building is depreciable."],
-    ["Capital Gains Tax Rate", num("dcf-cap-gains")/100, "Used if you want to extend sale tax logic later."],
+    ["Marginal Income Tax Rate", num("dcf-income-tax")/100, ""],
+    ["Land Value %", num("dcf-land-pct")/100, ""],
+    ["Capital Gains Tax Rate", num("dcf-cap-gains")/100, ""],
     ["", "", ""],
 
     ["SCENARIO ADJUSTMENTS (AUTO)", "", ""],
-    ["Rent Mult", "", "Pulled from Scenarios tab based on Inputs!B3."],
-    ["Vacancy Add", "", "Added to base vacancy to create Effective Vacancy."],
-    ["Rent Growth Add", "", "Added to base rent growth to create Effective Rent Growth."],
-    ["Appreciation Add", "", "Added to base appreciation to create Effective Appreciation."],
-    ["Expense Ratio Add", "", "Added to base expense ratio to create Effective Expense Ratio."],
+    ["Rent Mult", "", ""],
+    ["Vacancy Add", "", ""],
+    ["Rent Growth Add", "", ""],
+    ["Appreciation Add", "", ""],
+    ["Expense Ratio Add", "", ""],
     ["", "", ""],
 
     ["EFFECTIVE (USED BY MODEL) (AUTO)", "", ""],
-    ["Effective Main Rent", "", "Main rent after scenario multiplier."],
-    ["Effective ADU Rent", "", "ADU rent after scenario multiplier."],
-    ["Effective Vacancy", "", "Vacancy after scenario adjustment."],
-    ["Effective Rent Growth", "", "Rent growth after scenario adjustment."],
-    ["Effective Appreciation", "", "Appreciation after scenario adjustment."],
-    ["Effective Expense Ratio", "", "Expense ratio after scenario adjustment."],
+    ["Effective Main Rent", "", ""],
+    ["Effective ADU Rent", "", ""],
+    ["Effective Vacancy", "", ""],
+    ["Effective Rent Growth", "", ""],
+    ["Effective Appreciation", "", ""],
+    ["Effective Expense Ratio", "", ""],
     ["", "", ""],
 
     ["DERIVED (AUTO) (FORMULAS)", "", ""],
-    ["Total Investment", "", "Purchase + ADU cost."],
-    ["Loan Amount", "", "Total Investment * LTV."],
-    ["Equity", "", "Total Investment * (1 - LTV)."],
-    ["Closing Costs ($)", "", "Total Investment * Closing Costs %."],
-    ["Cash Invested", "", "Equity + Closing Costs."],
-    ["Monthly Payment", "", "Loan payment computed by PMT()."],
-    ["Annual Debt Service", "", "Monthly payment * 12."],
-    ["Depreciable Basis", "", "Total Investment * (1 - Land%)."],
-    ["Annual Depreciation", "", "Depreciable basis / 27.5 years."],
+    ["Total Investment", "", ""],
+    ["Loan Amount", "", ""],
+    ["Equity", "", ""],
+    ["Closing Costs ($)", "", ""],
+    ["Cash Invested", "", ""],
+    ["Monthly Payment", "", ""],
+    ["Annual Debt Service", "", ""],
+    ["Depreciable Basis", "", ""],
+    ["Annual Depreciation", "", ""],
   ];
 
   const wsInputs = XLSX.utils.aoa_to_sheet(inputsAOA);
-  wsInputs["!cols"] = [{ wch: 28 }, { wch: 18 }, { wch: 62 }];
-
-  // Title merge + section styling
+  wsInputs["!cols"] = [{ wch: 28 }, { wch: 18 }, { wch: 48 }];
   wsInputs["!merges"] = [XLSX.utils.decode_range("A1:C1")];
+  wsInputs["!sheetViews"] = [{ showGridLines: false }];
   styleRange(wsInputs, "A1:C1", STY.title);
 
-  // Section header rows
-  [5,12,27,33,38,45,53].forEach(r => styleRange(wsInputs, `A${r}:C${r}`, STY.section));
+  // Section bars (apply AFTER label styling so they don't get overwritten)
+  styleRange(wsInputs, "A2:A70", STY.label);
+  styleRange(wsInputs, "C2:C70", STY.note);
 
-  // Labels + notes
-  styleRange(wsInputs, "A2:A61", STY.label);
-  styleRange(wsInputs, "C2:C61", STY.note);
+  [5,12,27,33,38,45,53].forEach(r => styleRange(wsInputs, `A${r}:C${r}`, STY.bar));
 
-  // Blue input cells (editable)
+  // Blue inputs
   const blueCells = [
     "B3",
     "B6","B7","B8","B9","B10",
@@ -2378,24 +2355,14 @@ function exportXLSX() {
   wsInputs["B24"].z = "0";
   wsInputs["B30"].z = "0";
 
-  // Grey calc cells (locked)
-  const calcCells = [
-    // scenario pulls
-    "B39","B40","B41","B42","B43",
-    // effective
-    "B47","B48","B49","B50","B51","B52",
-    // derived
-    "B54","B55","B56","B57","B58","B59","B60","B61","B62"
-  ];
-
-  // Scenario lookup formulas (Scenarios tab)
+  // Scenario pulls
   wsInputs["B39"] = { t:"n", f:'INDEX(Scenarios!$B$2:$B$4, MATCH($B$3, Scenarios!$A$2:$A$4, 0))', v:1, z:"0.00" };
   wsInputs["B40"] = { t:"n", f:'INDEX(Scenarios!$C$2:$C$4, MATCH($B$3, Scenarios!$A$2:$A$4, 0))', v:0, z:"0.00%" };
   wsInputs["B41"] = { t:"n", f:'INDEX(Scenarios!$D$2:$D$4, MATCH($B$3, Scenarios!$A$2:$A$4, 0))', v:0, z:"0.00%" };
   wsInputs["B42"] = { t:"n", f:'INDEX(Scenarios!$E$2:$E$4, MATCH($B$3, Scenarios!$A$2:$A$4, 0))', v:0, z:"0.00%" };
   wsInputs["B43"] = { t:"n", f:'INDEX(Scenarios!$F$2:$F$4, MATCH($B$3, Scenarios!$A$2:$A$4, 0))', v:0, z:"0.00%" };
 
-  // Effective assumptions (used by model)
+  // Effective assumptions
   wsInputs["B47"] = { t:"n", f:"$B$8*$B$39", v:num("rent-main"), z:"$#,##0" };
   wsInputs["B48"] = { t:"n", f:"$B$9*$B$39", v:num("rent-monthly"), z:"$#,##0" };
   wsInputs["B49"] = { t:"n", f:"MIN(MAX($B$10 + $B$40, 0), 0.5)", v:num("rent-vacancy")/100, z:"0.00%" };
@@ -2403,7 +2370,7 @@ function exportXLSX() {
   wsInputs["B51"] = { t:"n", f:"$B$16 + $B$42", v:num("dcf-appreciation")/100, z:"0.00%" };
   wsInputs["B52"] = { t:"n", f:"$B$15 + $B$43", v:num("dcf-expense-ratio")/100, z:"0.00%" };
 
-  // Derived formulas
+  // Derived
   wsInputs["B54"] = { t:"n", f:"$B$6+$B$7", v:(num("dcf-purchase")+num("dcf-adu-cost")), z:"$#,##0" };
   wsInputs["B55"] = { t:"n", f:"$B$54*$B$28", v:model.loanAmount, z:"$#,##0" };
   wsInputs["B56"] = { t:"n", f:"$B$54*(1-$B$28)", v:model.equity, z:"$#,##0" };
@@ -2414,18 +2381,19 @@ function exportXLSX() {
   wsInputs["B61"] = { t:"n", f:"$B$54*(1-$B$35)", v:model.depreciableBasis, z:"$#,##0" };
   wsInputs["B62"] = { t:"n", f:"$B$61/27.5", v:model.annualDepr, z:"$#,##0" };
 
-  // Style calc cells
-  calcCells.forEach(a => styleCell(wsInputs, a, STY.calc));
+  // Make calc cells grey/locked
+  [
+    "B39","B40","B41","B42","B43",
+    "B47","B48","B49","B50","B51","B52",
+    "B54","B55","B56","B57","B58","B59","B60","B61","B62"
+  ].forEach(a => styleCell(wsInputs, a, STY.calc));
 
-  // Freeze panes beneath header area
   wsInputs["!freeze"] = { ySplit: "5", topLeftCell: "A6", activePane: "bottomLeft", state: "frozen" };
-
-  // Protect Inputs (blue cells unlocked)
   wsInputs["!protect"] = { password: BANKER_PW, selectLockedCells: true, selectUnlockedCells: true };
 
-  // ============================================================
-  // DEBT TAB (annual amortization)
-  // ============================================================
+  // =========================
+  // DEBT
+  // =========================
   const debtAOA = [["Year","Beg Balance","Principal","Interest","End Balance","Debt Service"]];
   for (let i = 1; i <= H; i++) {
     const row = i + 1;
@@ -2441,12 +2409,13 @@ function exportXLSX() {
   const wsDebt = XLSX.utils.aoa_to_sheet(debtAOA);
   wsDebt["!cols"] = [{wch:6},{wch:16},{wch:14},{wch:14},{wch:16},{wch:14}];
   wsDebt["!freeze"] = { ySplit: "1", topLeftCell: "A2", activePane: "bottomLeft", state: "frozen" };
+  wsDebt["!sheetViews"] = [{ showGridLines: false }];
   styleRange(wsDebt, "A1:F1", STY.header);
   wsDebt["!protect"] = { password: BANKER_PW, selectLockedCells: true, selectUnlockedCells: false };
 
-  // ============================================================
-  // CASH FLOW TAB (uses Effective assumptions)
-  // ============================================================
+  // =========================
+  // CASH FLOW
+  // =========================
   const cfHeader = ["Year","GPR","Vacancy","EGI","Prop Tax","Insurance","Mgmt","Maint","Reserves","Total OpEx","NOI","Debt Svc","Levered CF"];
   const cfAOA = [cfHeader];
 
@@ -2457,14 +2426,11 @@ function exportXLSX() {
       { t:"n", f:`(Inputs!$B$47+Inputs!$B$48)*12*(1+Inputs!$B$50)^(A${r}-1)`, v:years[i-1]?.gpr||0, z:"$#,##0" },
       { t:"n", f:`-B${r}*Inputs!$B$49`, v:-(years[i-1]?.vacancyLoss||0), z:"$#,##0" },
       { t:"n", f:`B${r}+C${r}`, v:years[i-1]?.egi||0, z:"$#,##0" },
-
-      // OpEx components (negative)
       { t:"n", f:`-(Inputs!$B$54*Inputs!$B$17*(1+Inputs!$B$22)^(A${r}-1))`, v:0, z:"$#,##0" },
       { t:"n", f:`-(Inputs!$B$18*(1+Inputs!$B$22)^(A${r}-1))`, v:0, z:"$#,##0" },
       { t:"n", f:`-(D${r}*Inputs!$B$20)`, v:0, z:"$#,##0" },
       { t:"n", f:`-(D${r}*MAX(Inputs!$B$52-Inputs!$B$20,Inputs!$B$24))`, v:0, z:"$#,##0" },
       { t:"n", f:`-(Inputs!$B$19*Inputs!$B$23*(1+Inputs!$B$22)^(A${r}-1))`, v:0, z:"$#,##0" },
-
       { t:"n", f:`SUM(E${r}:I${r})`, v:-(years[i-1]?.totalOpEx||0), z:"$#,##0" },
       { t:"n", f:`D${r}+J${r}`, v:years[i-1]?.noi||0, z:"$#,##0" },
       { t:"n", f:`-Inputs!$B$60`, v:-model.annualDebt, z:"$#,##0" },
@@ -2475,33 +2441,33 @@ function exportXLSX() {
   const wsCF = XLSX.utils.aoa_to_sheet(cfAOA);
   wsCF["!cols"] = [{wch:6}].concat(Array(12).fill({wch:14}));
   wsCF["!freeze"] = { ySplit: "1", topLeftCell: "A2", activePane: "bottomLeft", state: "frozen" };
+  wsCF["!sheetViews"] = [{ showGridLines: false }];
   styleRange(wsCF, "A1:M1", STY.header);
   wsCF["!protect"] = { password: BANKER_PW, selectLockedCells: true, selectUnlockedCells: false };
 
-  // ============================================================
-  // RETURNS TAB (hidden helper for IRR/NPV)
-  // ============================================================
+  // =========================
+  // RETURNS (hidden helper)
+  // =========================
   const wsRet = XLSX.utils.aoa_to_sheet([["Year","Cash Flow"]]);
+  wsRet["!sheetViews"] = [{ showGridLines: false }];
   wsRet["A2"] = { t:"n", v:0, z:"0" };
   wsRet["B2"] = { t:"n", f:"-Inputs!$B$58", v:-model.cashInvested, z:"$#,##0" };
 
   for (let i = 1; i <= H; i++) {
     const rr = i + 2;
     wsRet[`A${rr}`] = { t:"n", v:i, z:"0" };
-
-    const salePriceF = `Inputs!$B$54*(1+Inputs!$B$51)^A${rr}`;
+    const salePriceF = `Inputs!$B$54*(1+Inputs!$B$16)^A${rr}`;
     const saleProceedsF = `${salePriceF}*(1-Inputs!$B$23) - Debt!E${i+1}`;
-    const cfF = (i === H) ? `Cash Flow!M${i+1} + ${saleProceedsF}` : `Cash Flow!M${i+1}`;
-
+    const cfF = (i === H) ? `'Cash Flow'!M${i+1} + ${saleProceedsF}` : `'Cash Flow'!M${i+1}`;
     wsRet[`B${rr}`] = { t:"n", f: cfF, v:0, z:"$#,##0" };
   }
   wsRet["!cols"] = [{wch:6},{wch:16}];
   styleRange(wsRet, "A1:B1", STY.header);
   wsRet["!protect"] = { password: BANKER_PW, selectLockedCells: true, selectUnlockedCells: false };
 
-  // ============================================================
-  // SUMMARY TAB (metrics + checks + thick bordered box + notes)
-  // ============================================================
+  // =========================
+  // SUMMARY (fix #NAME? by quoting 'Cash Flow')
+  // =========================
   const wsSum = XLSX.utils.aoa_to_sheet([
     ["ADUe diligence — Summary", "", "", ""],
     ["Property", addressLine || "(enter on site)", "", ""],
@@ -2509,9 +2475,9 @@ function exportXLSX() {
     ["", "", "", ""],
 
     ["KEY METRICS", "", "", ""],
-    ["Cap Rate", {t:"n", f:"Cash Flow!K2/Inputs!$B$54", v:0, z:"0.00%"}, "", "Year 1 NOI / Total Investment"],
-    ["Cash-on-Cash", {t:"n", f:"Cash Flow!M2/Inputs!$B$58", v:0, z:"0.00%"}, "", "Year 1 Levered CF / Cash Invested"],
-    ["DSCR", {t:"n", f:"Cash Flow!K2/Inputs!$B$60", v:0, z:"0.00x"}, "", "NOI / Annual Debt Service"],
+    ["Cap Rate", {t:"n", f:"'Cash Flow'!K2/Inputs!$B$54", v:0, z:"0.00%"}, "", "Year 1 NOI / Total Investment"],
+    ["Cash-on-Cash", {t:"n", f:"'Cash Flow'!M2/Inputs!$B$58", v:0, z:"0.00%"}, "", "Year 1 Levered CF / Cash Invested"],
+    ["DSCR", {t:"n", f:"'Cash Flow'!K2/Inputs!$B$60", v:0, z:"0.00x"}, "", "NOI / Annual Debt Service"],
     ["IRR", {t:"n", f:`IRR(Returns!B2:INDEX(Returns!B:B, Inputs!$B$13+2))`, v:0, z:"0.00%"}, "", "IRR of levered CFs incl sale"],
     ["NPV (@ Inputs!Discount)", {t:"n", f:`NPV(Inputs!$B$25, Returns!B3:INDEX(Returns!B:B, Inputs!$B$13+2)) + Returns!B2`, v:0, z:"$#,##0"}, "", "NPV using discount rate on Inputs"],
     ["MOIC", {t:"n", f:`SUM(Returns!B3:INDEX(Returns!B:B, Inputs!$B$13+2))/(-Returns!B2)`, v:0, z:"0.00x"}, "", "Total cash returned / Cash invested"],
@@ -2519,37 +2485,39 @@ function exportXLSX() {
     ["", "", "", ""],
     ["CHECKS (quick red-flag tests)", "", "", ""],
     ["DSCR >= 1.00x", {t:"s", f:'IF(B8>=1,"PASS","FAIL")', v:""}, "", "Below 1.0 means NOI can’t cover debt service."],
-    ["Year 1 Levered CF >= 0", {t:"s", f:'IF(Cash Flow!M2>=0,"PASS","FAIL")', v:""}, "", "Negative = you feed the deal cash in year 1."],
-    ["IRR >= 8%", {t:"s", f:'IF(B9>=0.08,"PASS","FAIL")', v:""}, "", "Example hurdle. Adjust your hurdle mentally."],
+    ["Year 1 Levered CF >= 0", {t:"s", f:`IF('Cash Flow'!M2>=0,"PASS","FAIL")`, v:""}, "", "Negative = you feed the deal cash in year 1."],
+    ["IRR >= 8%", {t:"s", f:'IF(B9>=0.08,"PASS","FAIL")', v:""}, "", "Example hurdle; adjust mentally."],
   ]);
 
-  wsSum["!cols"] = [{wch:26},{wch:18},{wch:6},{wch:52}];
-  wsSum["!merges"] = [XLSX.utils.decode_range("A1:D1")];
+  wsSum["!cols"] = [{wch:26},{wch:18},{wch:3},{wch:52}];
+  wsSum["!merges"] = [XLSX.utils.decode_range("A1:D1"), XLSX.utils.decode_range("A5:D5"), XLSX.utils.decode_range("A14:D14")];
+  wsSum["!sheetViews"] = [{ showGridLines: false }];
 
   styleRange(wsSum, "A1:D1", STY.title);
-  styleRange(wsSum, "A5:D5", STY.section);
-  styleRange(wsSum, "A14:D14", STY.section);
 
-  styleRange(wsSum, "A2:A12", STY.label);
+  // Labels/notes first
+  styleRange(wsSum, "A2:A3", STY.label);
+  styleRange(wsSum, "A6:A11", STY.label);
   styleRange(wsSum, "A15:A17", STY.label);
-
   styleRange(wsSum, "D6:D11", STY.note);
   styleRange(wsSum, "D15:D17", STY.note);
 
-  // Metric value cells (grey)
-  styleRange(wsSum, "B6:B11", STY.calc);
+  // Header bars (apply after label styling so they don't get overwritten)
+  styleRange(wsSum, "A5:D5", STY.bar);
+  styleRange(wsSum, "A14:D14", STY.bar);
 
-  // Check result cells (neutral grey; PASS/FAIL text is the signal)
+  // Values
+  styleRange(wsSum, "B6:B11", STY.calc);
   styleRange(wsSum, "B15:B17", STY.calc);
 
-  // Thick border around the key metrics box (A6:B11)
+  // Border box (thinner than before)
   styleRange(wsSum, "A6:B11", STY.box);
 
   wsSum["!protect"] = { password: BANKER_PW, selectLockedCells: true, selectUnlockedCells: false };
 
-  // ============================================================
-  // Add sheets in clean order (and hide Returns)
-  // ============================================================
+  // =========================
+  // Write sheets (clean order)
+  // =========================
   XLSX.utils.book_append_sheet(wb, wsReadme, "README");
   XLSX.utils.book_append_sheet(wb, wsSum, "Summary");
   XLSX.utils.book_append_sheet(wb, wsInputs, "Inputs");
@@ -2563,9 +2531,7 @@ function exportXLSX() {
   const idxRet = wb.SheetNames.indexOf("Returns");
   if (idxRet >= 0) wb.Workbook.Sheets[idxRet].Hidden = 1;
 
-  // ============================================================
-  // Filename from address (no hyphens)
-  // ============================================================
+  // Filename
   const numPart = sanitizeFilePartNoHyphen(streetNo);
   const streetPart = sanitizeFilePartNoHyphen(streetName);
   const baseName = (numPart && streetPart)
@@ -2575,11 +2541,10 @@ function exportXLSX() {
   XLSX.writeFile(wb, baseName + ".xlsx", {
     bookType: "xlsx",
     cellStyles: true,
-    showGridLines: false,
     compression: true
   });
 }
-
+  
 // ===== ANIMATIONS =====
 
 // Card reveal on scroll
