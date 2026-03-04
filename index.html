@@ -1,0 +1,2316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADUe diligence</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --void: #0a0212;
+  --card-bg: rgba(22, 14, 48, 0.85);
+  --card-solid: #16102e;
+  --chrome: #D8D4CE;
+  --chrome-dim: rgba(216, 212, 206, 0.72);
+  --magenta: #CC44CC;
+  --cyan: #44CCCC;
+  --orange: #CC8833;
+  --green: #44CC88;
+  --red: #CC5566;
+  --yellow: #CCAA33;
+  --border: #2A1B40;
+  --border-bright: #44CCCC;
+  --font-head: 'Orbitron', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --glow-cyan: 0 0 10px rgba(68,204,204,0.25);
+  --glow-magenta: 0 0 10px rgba(204,68,204,0.2);
+  --glow-cyan-strong: 0 0 18px rgba(68,204,204,0.35);
+}
+
+/* ===== LIGHT MODE ===== */
+html.light {
+  --void: #f0ede8;
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-solid: #ffffff;
+  --chrome: #1a1625;
+  --chrome-dim: rgba(26, 22, 37, 0.65);
+  --magenta: #a83aaf;
+  --cyan: #0e9a9a;
+  --orange: #b87420;
+  --green: #1a9960;
+  --red: #c44455;
+  --yellow: #a88520;
+  --border: #d8d4e0;
+  --border-bright: #0e9a9a;
+  --glow-cyan: 0 0 10px rgba(14,154,154,0.15);
+  --glow-magenta: 0 0 10px rgba(168,58,175,0.12);
+  --glow-cyan-strong: 0 0 18px rgba(14,154,154,0.2);
+}
+html.light body::before {
+  background-image:
+    radial-gradient(circle, rgba(14,154,154,0.08) 1px, transparent 1px),
+    radial-gradient(circle, rgba(168,58,175,0.03) 0.8px, transparent 0.8px);
+}
+html.light body::after {
+  background: none;
+}
+html.light .sun {
+  background: radial-gradient(circle, rgba(204,136,51,0.04) 0%, rgba(168,58,175,0.02) 50%, transparent 70%);
+}
+html.light select option {
+  background: #fff;
+  color: #1a1625;
+}
+html.light input[type="number"],
+html.light input[type="text"],
+html.light select {
+  background: rgba(0,0,0,0.04);
+}
+html.light .card {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+html.light .hamburger,
+html.light .mobile-nav,
+html.light .mobile-nav .close-x {
+  background: var(--void);
+}
+html.light .floating-tooltip,
+html.light .jargon .tip {
+  background: #fff;
+  border-color: var(--cyan);
+}
+html.light header h1 {
+  filter: none;
+}
+
+/* ===== THEME TOGGLE ===== */
+.theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card-solid);
+  color: var(--chrome);
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s linear;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.theme-toggle:hover {
+  border-color: var(--cyan);
+  box-shadow: var(--glow-cyan);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-mono);
+  color: var(--chrome);
+  background-color: var(--void);
+  line-height: 1.6;
+  font-size: 14px;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ===== DOT GRID (architectural drafting paper, subtle) ===== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(68,204,204,0.10) 1px, transparent 1px),
+    radial-gradient(circle, rgba(204,68,204,0.035) 0.8px, transparent 0.8px);
+  background-size: 28px 28px, 28px 28px;
+  background-position: 0 0, 14px 14px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== SCANLINES (very subtle CRT) ===== */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.06) 2px,
+    rgba(0,0,0,0.06) 4px
+  );
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ===== LAYOUT ===== */
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 20px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== HEADER ===== */
+header {
+  text-align: center;
+  padding: 60px 0 20px;
+}
+header h1 {
+  font-family: var(--font-head);
+  font-size: 2.6rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, var(--orange), var(--magenta), var(--cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(204,68,204,0.25));
+  line-height: 1.15;
+}
+header .subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--chrome-dim);
+  letter-spacing: 3px;
+
+  margin-top: 8px;
+}
+
+/* ===== NAV ===== */
+nav.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin: 28px 0 40px;
+}
+nav.toc a {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--cyan);
+  text-decoration: none;
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  background: transparent;
+
+  letter-spacing: 1px;
+  transition: all 0.2s linear;
+}
+nav.toc a:hover {
+  border-color: var(--cyan);
+  background: rgba(68,204,204,0.06);
+  box-shadow: var(--glow-cyan);
+}
+
+/* ===== CARDS (blueprint panels) ===== */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--cyan);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 28px 28px 24px;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+/* Window chrome dots */
+.card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 16px;
+  width: 8px;
+  height: 2px;
+  background: var(--magenta);
+  box-shadow:
+    14px 0 0 var(--cyan),
+    28px 0 0 var(--orange);
+}
+
+.card h2 {
+  font-family: var(--font-head);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+
+  color: var(--cyan);
+  filter: drop-shadow(0 0 5px rgba(68,204,204,0.35));
+  margin-bottom: 4px;
+}
+.card .section-num {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--magenta);
+
+  letter-spacing: 2px;
+}
+.card p.desc {
+  color: var(--chrome-dim);
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+  line-height: 1.65;
+}
+
+/* ===== FORM ELEMENTS ===== */
+label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--chrome-dim);
+
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+input[type="number"], input[type="text"], select {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--cyan);
+  background: rgba(0,0,0,0.5);
+  border: none;
+  border-bottom: 2px solid var(--border);
+  padding: 8px 10px;
+  width: 100%;
+  transition: all 0.2s linear;
+}
+input[type="number"]:focus,
+input[type="text"]:focus,
+select:focus {
+  outline: none;
+  border-bottom-color: var(--cyan);
+  box-shadow: 0 2px 12px rgba(68,204,204,0.15);
+}
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%2344CCCC' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+select option {
+  background: #1a103c;
+  color: var(--chrome);
+}
+input[readonly] {
+  color: var(--chrome-dim);
+  border-bottom-style: dashed;
+}
+
+.input-group { margin-bottom: 14px; }
+.input-row { display: grid; gap: 16px; margin-bottom: 14px; }
+.input-row.cols-2 { grid-template-columns: 1fr 1fr; }
+.input-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.input-row.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+.input-suffix { position: relative; }
+.input-suffix input { padding-right: 32px; }
+.input-suffix::after {
+  content: attr(data-suffix);
+  position: absolute;
+  right: 10px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-bottom: 2px;
+  color: var(--magenta);
+  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+.input-prefix { position: relative; }
+.input-prefix input { padding-left: 18px; }
+.input-prefix::before {
+  content: '$';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-bottom: 2px;
+  color: var(--magenta);
+  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+
+/* ===== TOGGLE BUTTONS (skewed vaporwave) ===== */
+.toggle-group {
+  display: flex;
+  gap: 0;
+  margin-bottom: 14px;
+}
+.toggle-group button {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 7px 16px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--chrome-dim);
+  cursor: pointer;
+
+  letter-spacing: 1px;
+  transition: all 0.2s linear;
+  transform: skewX(-6deg);
+}
+.toggle-group button span {
+  display: inline-block;
+  transform: skewX(6deg);
+}
+.toggle-group button:not(:first-child) { border-left: none; }
+.toggle-group button.active {
+  background: var(--cyan);
+  color: var(--void);
+  border-color: var(--cyan);
+  box-shadow: var(--glow-cyan);
+}
+.toggle-group button:not(.active):hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+/* ===== RANGE SLIDER ===== */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  outline: none;
+  margin: 10px 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--cyan);
+  cursor: pointer;
+  box-shadow: var(--glow-cyan);
+}
+
+/* ===== CHECKLISTS ===== */
+.checklist { list-style: none; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(45,27,78,0.6);
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--cyan);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.checklist .item-label {
+  font-weight: 400;
+  color: var(--chrome);
+  font-size: 0.9rem;
+}
+.checklist .item-hint {
+  font-size: 0.78rem;
+  color: var(--chrome-dim);
+  margin-top: 2px;
+}
+
+/* ===== SCORE BADGES ===== */
+.score-badge {
+  display: inline-block;
+  font-family: var(--font-head);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+
+  padding: 6px 18px;
+  margin-top: 14px;
+  border: 1px solid;
+}
+.score-green {
+  color: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 10px rgba(68,204,136,0.15);
+}
+.score-yellow {
+  color: var(--yellow);
+  border-color: var(--yellow);
+  box-shadow: 0 0 10px rgba(204,170,51,0.15);
+}
+.score-red {
+  color: var(--red);
+  border-color: var(--red);
+  box-shadow: 0 0 10px rgba(204,85,102,0.15);
+}
+
+/* ===== TABLES ===== */
+.table-wrap { overflow-x: auto; overflow-y: visible; margin: 16px -4px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  min-width: 700px;
+}
+th, td {
+  padding: 8px 10px;
+  text-align: right;
+  border: 1px solid rgba(45,27,78,0.5);
+  white-space: nowrap;
+}
+th {
+  background: rgba(0,0,0,0.4);
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--magenta);
+
+  letter-spacing: 1px;
+  position: sticky;
+  top: 0;
+}
+th:first-child, td:first-child { text-align: left; }
+td { color: var(--chrome-dim); }
+td.positive { color: var(--green); }
+td.negative { color: var(--red); }
+
+/* ===== METRICS GRID ===== */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.metric-card {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--magenta);
+  padding: 16px;
+  text-align: center;
+}
+.metric-card .metric-value {
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cyan);
+  line-height: 1.2;
+}
+.metric-card .metric-label {
+  font-size: 0.72rem;
+  color: var(--chrome-dim);
+
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* ===== COST BREAKDOWN ===== */
+.cost-breakdown { list-style: none; margin: 12px 0; }
+.cost-breakdown li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(45,27,78,0.4);
+  font-size: 0.88rem;
+}
+.cost-breakdown li:last-child { border-bottom: none; }
+.cost-breakdown .cost-label { color: var(--chrome-dim); }
+.cost-breakdown .cost-value { color: var(--cyan); font-weight: 400; }
+.cost-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0 4px;
+  font-size: 1rem;
+  border-top: 2px solid var(--magenta);
+  margin-top: 4px;
+  color: var(--chrome);
+}
+.cost-total span:last-child {
+  color: var(--cyan);
+  font-family: var(--font-head);
+  font-weight: 700;
+}
+.cost-range {
+  text-align: center;
+  color: var(--chrome-dim);
+  font-size: 0.82rem;
+  margin-top: 10px;
+}
+
+/* ===== INFO BOXES ===== */
+.jargon-box {
+  background: rgba(68,204,204,0.03);
+  border: 1px dashed rgba(68,204,204,0.2);
+  padding: 18px 20px;
+  margin: 18px 0;
+}
+.jargon-box h4 {
+  font-family: var(--font-head);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--cyan);
+
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.jargon-box dl { font-size: 0.84rem; }
+.jargon-box dt { font-weight: 400; color: var(--chrome); margin-top: 8px; }
+.jargon-box dd { color: var(--chrome-dim); margin-left: 0; margin-top: 2px; }
+
+/* ===== TOOLTIPS ===== */
+.jargon {
+  border-bottom: 1px dotted var(--magenta);
+  cursor: help;
+  position: relative;
+  color: inherit;
+}
+.jargon .tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a103c;
+  color: var(--chrome);
+  font-size: 0.78rem;
+  font-weight: 400;
+  padding: 10px 14px;
+  border: 1px solid var(--cyan);
+  width: 260px;
+  text-align: left;
+  line-height: 1.5;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: var(--glow-cyan);
+  text-transform: none;
+}
+.jargon:hover .tip { display: block; }
+
+/* Tooltips inside table headers: handled by JS with fixed positioning */
+th .jargon .tip { display: none !important; }
+
+/* JS-based floating tooltip for table headers */
+.floating-tooltip {
+  position: fixed;
+  background: #1a103c;
+  color: var(--chrome);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 400;
+  padding: 10px 14px;
+  border: 1px solid var(--cyan);
+  width: 260px;
+  text-align: left;
+  line-height: 1.5;
+  z-index: 2000;
+  pointer-events: none;
+  box-shadow: var(--glow-cyan);
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 10px 24px;
+  border: 2px solid var(--cyan);
+  background: transparent;
+  color: var(--cyan);
+  cursor: pointer;
+
+  letter-spacing: 2px;
+  transition: all 0.2s linear;
+  transform: skewX(-6deg);
+}
+.btn:hover {
+  background: var(--cyan);
+  color: var(--void);
+  box-shadow: var(--glow-cyan-strong);
+  transform: skewX(0deg);
+}
+.btn-outline {
+  border-color: var(--magenta);
+  color: var(--magenta);
+}
+.btn-outline:hover {
+  background: var(--magenta);
+  color: #fff;
+  box-shadow: var(--glow-magenta);
+  transform: skewX(0deg);
+}
+.btn-export {
+  border-color: var(--green);
+  color: var(--green);
+  font-size: 0.9rem;
+  padding: 12px 32px;
+}
+.btn-export:hover {
+  background: var(--green);
+  color: var(--void);
+  box-shadow: 0 0 20px rgba(68,204,136,0.3);
+  transform: skewX(0deg);
+}
+
+/* ===== GLOSSARY ===== */
+.glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+.glossary-item {
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--magenta);
+}
+.glossary-item strong {
+  color: var(--cyan);
+  font-family: var(--font-head);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+.glossary-item p {
+  font-size: 0.8rem;
+  color: var(--chrome-dim);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+/* ===== HAMBURGER MENU ===== */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 1002;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  background: var(--void);
+  cursor: pointer;
+  padding: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.hamburger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--cyan);
+  transition: all 0.2s linear;
+}
+.hamburger.open {
+  display: none !important;
+}
+
+.mobile-nav {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 1001;
+  background: var(--void);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.mobile-nav.open {
+  display: flex;
+}
+.mobile-nav a {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  color: var(--cyan);
+  text-decoration: none;
+  padding: 14px 24px;
+  letter-spacing: 1px;
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s linear;
+}
+.mobile-nav a:first-child {
+  border-top: 1px solid var(--border);
+}
+.mobile-nav a:hover, .mobile-nav a:active {
+  background: rgba(68,204,204,0.08);
+}
+.mobile-nav .close-x {
+  position: absolute;
+  top: 20px;
+  top: calc(20px + env(safe-area-inset-top, 0px));
+  right: 20px;
+  right: calc(20px + env(safe-area-inset-right, 0px));
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  background: var(--void);
+  cursor: pointer;
+  padding: 0;
+  font-size: 0;
+  overflow: hidden;
+}
+.mobile-nav .close-x::before,
+.mobile-nav .close-x::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 2px;
+  background: var(--cyan);
+}
+.mobile-nav .close-x::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.mobile-nav .close-x::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .container { padding: 16px 12px 16px; }
+  header h1 { font-size: 1.7rem; }
+  header .subtitle { font-size: 0.75rem; letter-spacing: 2px; }
+  .card { padding: 22px 16px 18px; }
+  .card h2 { font-size: 1.1rem; }
+  .input-row.cols-2,
+  .input-row.cols-3,
+  .input-row.cols-4 { grid-template-columns: 1fr; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .toggle-group button { font-size: 0.7rem; padding: 6px 10px; }
+
+  /* Hide desktop nav, show hamburger */
+  nav.toc { display: none; }
+  .hamburger { display: flex; }
+}
+
+/* ===== EXPORT BAR ===== */
+.export-bar {
+  border-top: 1px solid var(--border);
+  padding: 24px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* ===== TIMELINE BAR ===== */
+.timeline-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  font-size: 0.85rem;
+  color: var(--chrome-dim);
+}
+.timeline-bar .bar {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  overflow: hidden;
+}
+.timeline-bar .bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--magenta), var(--cyan));
+  transition: width 0.3s linear;
+}
+
+/* ===== SUB-SECTIONS ===== */
+.sub-section {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(45,27,78,0.5);
+}
+.sub-section h3 {
+  font-family: var(--font-head);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+
+  margin-bottom: 12px;
+  color: var(--magenta);
+}
+
+/* ===== FLOATING SUN (architectural WIP ambiance) ===== */
+.sun {
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(204,136,51,0.06) 0%, rgba(204,68,204,0.03) 50%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== RESULT TEXT ===== */
+.result-text {
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
+.result-text.green { color: var(--green); }
+.result-text.yellow { color: var(--yellow); }
+.result-text.red { color: var(--red); }
+
+/* ===== ANIMATIONS ===== */
+
+/* Card entrance: fade up on scroll */
+.card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card hover: lift + glow amplify */
+.card:hover {
+  box-shadow: 0 0 20px rgba(68,204,204,0.1);
+}
+
+/* Metric cards: hover lift */
+.metric-card {
+  transition: transform 0.2s linear, box-shadow 0.2s linear;
+}
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 16px rgba(204,68,204,0.15);
+}
+
+/* Nav links: glow slide */
+nav.toc a {
+  position: relative;
+  overflow: hidden;
+}
+nav.toc a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--cyan);
+  transform: translateX(-101%);
+  transition: transform 0.25s linear;
+}
+nav.toc a:hover::after {
+  transform: translateX(0);
+}
+
+/* Glossary items: hover border glow */
+.glossary-item {
+  transition: border-color 0.2s linear, box-shadow 0.2s linear;
+}
+.glossary-item:hover {
+  border-left-color: var(--cyan);
+  box-shadow: -2px 0 10px rgba(0,255,255,0.15);
+}
+
+/* Checklist: flash on check */
+.checklist li {
+  transition: background 0.3s linear;
+}
+.checklist li.flash {
+  background: rgba(68,204,204,0.06);
+}
+
+/* Blinking cursor on subtitle */
+header .subtitle::after {
+  content: '_';
+  animation: blink 1s step-end infinite;
+  color: var(--cyan);
+  margin-left: 2px;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Sun: slow drift */
+.sun {
+  animation: sun-drift 12s ease-in-out infinite alternate;
+}
+@keyframes sun-drift {
+  0% { transform: translateX(-50%) translateY(0); }
+  100% { transform: translateX(-50%) translateY(20px); }
+}
+
+/* Score badge: pulse entrance */
+.score-badge {
+  animation: badge-in 0.4s ease-out;
+}
+@keyframes badge-in {
+  0% { opacity: 0; transform: scale(0.9); }
+  60% { opacity: 1; transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* Timeline fill: animated gradient shimmer */
+.timeline-bar .bar-fill {
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Header entrance */
+header h1 {
+  animation: title-in 0.8s ease-out both;
+}
+header .subtitle {
+  animation: title-in 0.8s ease-out 0.15s both;
+}
+nav.toc {
+  animation: title-in 0.6s ease-out 0.3s both;
+}
+@keyframes title-in {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Cost breakdown rows: stagger in */
+.cost-breakdown li {
+  transition: background 0.2s linear;
+}
+.cost-breakdown li:hover {
+  background: rgba(68,204,204,0.04);
+}
+
+/* Table row hover */
+table tbody tr {
+  transition: background 0.15s linear;
+}
+table tbody tr:hover {
+  background: rgba(68,204,204,0.04);
+}
+
+/* Touch-friendly tooltips: show on tap */
+.jargon.touch-active .tip {
+  display: block !important;
+}
+
+/* ===== SITE NAV (cross-site links) ===== */
+.site-nav {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.4);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1000;
+}
+.site-nav a {
+  color: var(--chrome-dim);
+  text-decoration: none;
+  padding: 4px 12px;
+  transition: color 0.2s linear;
+}
+.site-nav a:hover {
+  color: var(--cyan);
+}
+.site-nav a.active {
+  color: var(--cyan);
+  border-bottom: 1px solid var(--cyan);
+}
+html.light .site-nav {
+  background: rgba(0,0,0,0.03);
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .card { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Site navigation -->
+<nav class="site-nav">
+  <a href="https://adue-diligence.netlify.app" class="active">ADU</a>
+  <a href="https://investment-property-dd.netlify.app">Investment Property</a>
+  <a href="https://multifamily-dd.netlify.app">Multi-Family</a>
+</nav>
+
+<!-- Theme toggle -->
+<button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" onclick="toggleTheme()">&#9790;</button>
+
+<!-- Floating background ambiance -->
+<div class="sun"></div>
+
+<!-- Mobile hamburger + fullscreen nav -->
+<button class="hamburger" id="hamburger-btn" aria-label="Open menu" onclick="toggleMobileNav()">
+  <span></span><span></span><span></span>
+</button>
+<div class="mobile-nav" id="mobile-nav">
+  <button class="close-x" aria-label="Close menu" onclick="toggleMobileNav()"></button>
+  <a href="#sec-feasibility" onclick="toggleMobileNav()">feasibility</a>
+  <a href="#sec-legal" onclick="toggleMobileNav()">legal &amp; permits</a>
+  <a href="#sec-cost" onclick="toggleMobileNav()">build cost</a>
+  <a href="#sec-rent" onclick="toggleMobileNav()">rental income</a>
+  <a href="#sec-dcf" onclick="toggleMobileNav()">dcf model</a>
+  <a href="#sec-summary" onclick="toggleMobileNav()">summary</a>
+  <a href="#sec-glossary" onclick="toggleMobileNav()">glossary</a>
+</div>
+
+<div class="container">
+
+<!-- ===== HEADER ===== -->
+<header>
+  <h1>ADUe diligence</h1>
+  <p class="subtitle">ADU investment financial model</p>
+</header>
+
+<nav class="toc">
+  <a href="#sec-feasibility">feasibility</a>
+  <a href="#sec-legal">legal &amp; permits</a>
+  <a href="#sec-cost">build cost</a>
+  <a href="#sec-rent">rental income</a>
+  <a href="#sec-dcf">dcf model</a>
+  <a href="#sec-summary">summary</a>
+  <a href="#sec-glossary">glossary</a>
+</nav>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: PROPERTY & ADU FEASIBILITY                        -->
+<!-- ============================================================ -->
+<section class="card" id="sec-feasibility">
+  <span class="section-num">Section 1</span>
+  <h2>property &amp; ADU feasibility</h2>
+  <p class="desc">Walk through this checklist to assess whether your property is a good candidate for an ADU. Check each item that applies.</p>
+
+  <ul class="checklist" id="feasibility-checklist">
+    <li>
+      <input type="checkbox" id="feas-lot" onchange="updateFeasibility()">
+      <div>
+        <div class="item-label">Lot size meets minimum</div>
+        <div class="item-hint">Most jurisdictions require at least 1,200 sqft total lot area. Check your local zoning code.</div>
+      </div>
+    </li>
+    <li>
+      <input type="checkbox" id="feas-setbacks" onchange="updateFeasibility()">
+      <div>
+        <div class="item-label">Room for required setbacks</div>
+        <div class="item-hint">Typically 4ft from side and rear property lines. Measure your available build area.</div>
+      </div>
+    </li>
+    <li>
+      <input type="checkbox" id="feas-terrain" onchange="updateFeasibility()">
+      <div>
+        <div class="item-label">Buildable area is relatively flat</div>
+        <div class="item-hint">Slopes over 10% add significant cost for grading and special foundations.</div>
+      </div>
+    </li>
+    <li>
+      <input type="checkbox" id="feas-access" onchange="updateFeasibility()">
+      <div>
+        <div class="item-label">Independent access to ADU location</div>
+        <div class="item-hint">The ADU needs its own entrance, whether from the street, a side yard, or an alley.</div>
+      </div>
+    </li>
+    <li>
+      <input type="checkbox" id="feas-utilities" onchange="updateFeasibility()">
+      <div>
+        <div class="item-label">Utilities can reach the ADU site</div>
+        <div class="item-hint">Sewer, water, and electrical must extend to the build area. Long runs add cost.</div>
+      </div>
+    </li>
+    <li>
+      <input type="checkbox" id="feas-structure" onchange="updateFeasibility()">
+      <div>
+        <div class="item-label">Existing structure or clear build space</div>
+        <div class="item-hint">A garage to convert? Open yard space? This determines your ADU type and cost.</div>
+      </div>
+    </li>
+  </ul>
+
+  <div id="feasibility-result">
+    <span class="score-badge score-red">Check items above to see your score</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: LEGAL & PERMITTING                                -->
+<!-- ============================================================ -->
+<section class="card" id="sec-legal">
+  <span class="section-num">Section 2</span>
+  <h2>legal &amp; permitting</h2>
+  <p class="desc">Select your state and ADU type to see permitting guidance and a typical timeline estimate.</p>
+
+  <div class="input-row cols-2">
+    <div class="input-group">
+      <label for="legal-state">State</label>
+      <select id="legal-state" onchange="updateLegal()">
+        <option value="CA">California</option>
+        <option value="OR">Oregon</option>
+        <option value="WA">Washington</option>
+        <option value="TX">Texas</option>
+        <option value="CO">Colorado</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label for="legal-type">ADU Type</label>
+      <select id="legal-type" onchange="updateLegal()">
+        <option value="detached">Detached ADU</option>
+        <option value="attached">Attached ADU</option>
+        <option value="garage">Garage Conversion</option>
+        <option value="jadu">JADU (Junior ADU)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="input-row cols-2">
+    <div class="input-group">
+      <label>Owner-occupancy required?</label>
+      <div class="toggle-group">
+        <button class="active" onclick="setToggle(this)" data-val="no"><span>No</span></button>
+        <button onclick="setToggle(this)" data-val="yes"><span>Yes</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="legal-info">
+    <div class="sub-section">
+      <h3>Permitting Checklist</h3>
+      <ul class="checklist" id="permit-checklist">
+        <li><input type="checkbox"><div><div class="item-label">Design review / plan check</div></div></li>
+        <li><input type="checkbox"><div><div class="item-label">Building permit application</div></div></li>
+        <li><input type="checkbox"><div><div class="item-label">Utility hookup permits</div></div></li>
+        <li><input type="checkbox"><div><div class="item-label">Foundation inspection</div></div></li>
+        <li><input type="checkbox"><div><div class="item-label">Framing inspection</div></div></li>
+        <li><input type="checkbox"><div><div class="item-label">Final inspection &amp; certificate of occupancy</div></div></li>
+      </ul>
+    </div>
+
+    <div class="sub-section">
+      <h3>Estimated Timeline</h3>
+      <div class="timeline-bar">
+        <span id="timeline-label">6-9 months</span>
+        <div class="bar"><div class="bar-fill" id="timeline-fill" style="width:60%"></div></div>
+      </div>
+      <p id="timeline-detail" style="font-size:0.82rem;color:var(--chrome-dim)">Detached ADUs in California typically take 6-9 months from plans to move-in.</p>
+    </div>
+  </div>
+
+  <div class="jargon-box">
+    <h4>Key Terms</h4>
+    <dl>
+      <dt>ADU (Accessory Dwelling Unit)</dt>
+      <dd>A secondary housing unit on a single-family lot, like a backyard cottage, in-law suite, or converted garage.</dd>
+      <dt>JADU (Junior ADU)</dt>
+      <dd>A small ADU (up to 500 sqft) created within the walls of an existing home, often from a bedroom conversion.</dd>
+      <dt>Setback</dt>
+      <dd>The required distance between your building and the property line. Typically 4ft for ADUs.</dd>
+      <dt>By-right</dt>
+      <dd>Means you don't need special approval. Just meet the standards and get your permit. Many states now allow ADUs by-right.</dd>
+      <dt>Ministerial Review</dt>
+      <dd>A permit review based on objective standards (yes/no checklist), with no subjective design review or public hearings.</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: ADU BUILD COST ESTIMATOR                          -->
+<!-- ============================================================ -->
+<section class="card" id="sec-cost">
+  <span class="section-num">Section 3</span>
+  <h2>ADU build cost estimator</h2>
+  <p class="desc">Configure your ADU to get a cost estimate. Costs vary widely by region; these are national averages.</p>
+
+  <div class="input-group">
+    <label>Bedrooms</label>
+    <div class="toggle-group" id="toggle-beds">
+      <button onclick="setToggle(this);updateCost()" data-val="0"><span>Studio</span></button>
+      <button class="active" onclick="setToggle(this);updateCost()" data-val="1"><span>1 Bed</span></button>
+      <button onclick="setToggle(this);updateCost()" data-val="2"><span>2 Bed</span></button>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <label>Bathrooms</label>
+    <div class="toggle-group" id="toggle-baths">
+      <button class="active" onclick="setToggle(this);updateCost()" data-val="1"><span>1 Bath</span></button>
+      <button onclick="setToggle(this);updateCost()" data-val="2"><span>2 Bath</span></button>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <label>Construction Type</label>
+    <div class="toggle-group" id="toggle-construction">
+      <button class="active" onclick="setToggle(this);updateCost()" data-val="stick"><span>Stick-Built</span></button>
+      <button onclick="setToggle(this);updateCost()" data-val="prefab"><span>Prefab</span></button>
+      <button onclick="setToggle(this);updateCost()" data-val="garage"><span>Garage Conversion</span></button>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <label for="cost-sqft">Square footage: <strong id="cost-sqft-display" style="color:var(--cyan)">600</strong> sqft</label>
+    <input type="range" id="cost-sqft" min="200" max="1200" step="25" value="600" oninput="updateCost()">
+  </div>
+
+  <div class="sub-section">
+    <h3>Cost Breakdown</h3>
+    <ul class="cost-breakdown" id="cost-breakdown-list"></ul>
+    <div class="cost-total">
+      <span>Total Estimated Cost</span>
+      <span id="cost-total-value">$0</span>
+    </div>
+    <div class="cost-range" id="cost-range-text">Range: $0 - $0</div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: RENTAL INCOME ESTIMATOR                           -->
+<!-- ============================================================ -->
+<section class="card" id="sec-rent">
+  <span class="section-num">Section 4</span>
+  <h2>rental income estimator</h2>
+  <p class="desc">Estimate how much rent your ADU can generate. Check Zillow, Rentometer, or Craigslist for 3 comparable units in your area.</p>
+
+  <div class="input-row cols-3">
+    <div class="input-group">
+      <label for="rent-zip">Zip code (for reference)</label>
+      <input type="text" id="rent-zip" placeholder="e.g. 90210" maxlength="5">
+    </div>
+    <div class="input-group">
+      <label>Bed/bath (from section 3)</label>
+      <input type="text" id="rent-config" readonly>
+    </div>
+    <div class="input-group">
+      <label for="rent-monthly">Estimated monthly rent</label>
+      <div class="input-prefix">
+        <input type="number" id="rent-monthly" value="1800" min="0" step="50" onchange="updateAll()">
+      </div>
+    </div>
+  </div>
+
+  <div class="input-row cols-2">
+    <div class="input-group">
+      <label for="rent-vacancy">Vacancy rate</label>
+      <div class="input-suffix" data-suffix="%">
+        <input type="number" id="rent-vacancy" value="5" min="0" max="50" step="0.5" onchange="updateAll()">
+      </div>
+    </div>
+    <div class="input-group">
+      <label for="rent-main">Main house monthly rent</label>
+      <div class="input-prefix">
+        <input type="number" id="rent-main" value="2800" min="0" step="50" onchange="updateAll()">
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-value" id="rent-annual-adu">$0</div>
+      <div class="metric-label">ADU annual gross rent</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="rent-annual-total">$0</div>
+      <div class="metric-label">Total annual gross rent</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="rent-egi">$0</div>
+      <div class="metric-label"><span class="jargon">EGI<span class="tip">Effective gross income: your gross rent minus vacancy losses. This is the income you can actually count on.</span></span> (after vacancy)</div>
+    </div>
+  </div>
+
+  <div class="jargon-box">
+    <h4>How to Find Comps</h4>
+    <dl>
+      <dt>1. Search Zillow Rentals or Apartments.com</dt>
+      <dd>Filter by your bed/bath count and within 1 mile of your property.</dd>
+      <dt>2. Check at least 3 listings</dt>
+      <dd>Look for similar size and condition. ADUs often rent for 10-15% less than equivalent apartments.</dd>
+      <dt>3. Vacancy rate</dt>
+      <dd>5% is standard in strong markets. Use 8% for softer markets or if your area has lots of rental supply.</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: FULL DCF MODEL                                    -->
+<!-- ============================================================ -->
+<section class="card" id="sec-dcf">
+  <span class="section-num">Section 5</span>
+  <h2>full DCF model</h2>
+  <p class="desc">A complete 10-year <span class="jargon">discounted cash flow<span class="tip">DCF: a method to value an investment based on its expected future cash flows, adjusted for the time value of money.</span></span> projection for your ADU investment.</p>
+
+  <div class="sub-section">
+    <h3>Property &amp; Purchase</h3>
+    <div class="input-row cols-3">
+      <div class="input-group">
+        <label for="dcf-purchase">Purchase price</label>
+        <div class="input-prefix">
+          <input type="number" id="dcf-purchase" value="550000" step="5000" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>ADU build cost (from sec 3)</label>
+        <div class="input-prefix">
+          <input type="number" id="dcf-adu-cost" value="180000" readonly>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Total investment</label>
+        <div class="input-prefix">
+          <input type="number" id="dcf-total-invest" readonly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <h3>Operating Assumptions</h3>
+    <div class="input-row cols-4">
+      <div class="input-group">
+        <label for="dcf-hold">Hold period (years)</label>
+        <input type="number" id="dcf-hold" value="10" min="1" max="30" onchange="updateAll()">
+      </div>
+      <div class="input-group">
+        <label for="dcf-rent-growth">Annual rent growth</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-rent-growth" value="3" step="0.25" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-expense-ratio">Expense ratio</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-expense-ratio" value="20" step="1" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-appreciation">Annual appreciation</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-appreciation" value="3" step="0.25" onchange="updateAll()">
+        </div>
+      </div>
+    </div>
+    <div class="input-row cols-4">
+      <div class="input-group">
+        <label for="dcf-tax-rate">Property tax rate</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-tax-rate" value="1.7" step="0.1" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-insurance">Annual insurance</label>
+        <div class="input-prefix">
+          <input type="number" id="dcf-insurance" value="2400" step="100" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-reserves">Reserves ($/unit/yr)</label>
+        <div class="input-prefix">
+          <input type="number" id="dcf-reserves" value="1896" step="50" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-mgmt">Management fee</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-mgmt" value="8" step="0.5" onchange="updateAll()">
+        </div>
+      </div>
+    </div>
+    <div class="input-row cols-4">
+      <div class="input-group">
+        <label for="dcf-expense-growth">Annual expense growth</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-expense-growth" value="3" step="0.25" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-sale-costs">Sale costs (broker, etc.)</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-sale-costs" value="6" step="0.5" onchange="updateAll()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <h3>Loan Terms</h3>
+    <div class="input-row cols-4">
+      <div class="input-group">
+        <label for="dcf-ltv"><span class="jargon">LTV<span class="tip">Loan-to-value: the percentage of the property value that the bank will lend. 75% LTV means you put 25% down.</span></span></label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-ltv" value="75" step="1" min="0" max="100" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-rate">Interest rate</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-rate" value="7" step="0.125" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-amort">Amortization (yrs)</label>
+        <input type="number" id="dcf-amort" value="30" min="5" max="40" onchange="updateAll()">
+      </div>
+      <div class="input-group">
+        <label for="dcf-closing">Closing costs</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-closing" value="2" step="0.25" onchange="updateAll()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <h3>Tax Assumptions</h3>
+    <div class="input-row cols-3">
+      <div class="input-group">
+        <label for="dcf-income-tax">Marginal income tax rate</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-income-tax" value="32" step="1" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-land-pct">Land value %</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-land-pct" value="20" step="5" onchange="updateAll()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="dcf-cap-gains">Capital gains tax rate</label>
+        <div class="input-suffix" data-suffix="%">
+          <input type="number" id="dcf-cap-gains" value="20" step="1" onchange="updateAll()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <h3>Cash Flow Projection</h3>
+    <p class="desc" style="margin-bottom:12px">This table tracks your annual income flow from gross rent down to cash in your pocket after mortgage payments. It answers: "how much money am I making each year?"</p>
+    <div class="table-wrap">
+      <table id="dcf-table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th><span class="jargon">GPR<span class="tip">Gross potential rent: the total rent you'd collect if every unit was occupied all year.</span></span></th>
+            <th>Vacancy</th>
+            <th><span class="jargon">EGI<span class="tip">Effective gross income: GPR minus vacancy.</span></span></th>
+            <th>OpEx</th>
+            <th><span class="jargon">NOI<span class="tip">Net operating income: the money left after paying all operating expenses, but before mortgage payments.</span></span></th>
+            <th>Debt Service</th>
+            <th>Cash Flow</th>
+          </tr>
+        </thead>
+        <tbody id="dcf-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <h3>Detailed Cash Flow (with Sale)</h3>
+    <p class="desc" style="margin-bottom:12px">This table shows the wealth-building side: how your equity grows through loan paydown and property appreciation, plus what you'd walk away with if you sold. It answers: "how much am I worth?"</p>
+    <div class="table-wrap">
+      <table id="dcf-detail-table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>NOI</th>
+            <th>Debt Service</th>
+            <th>Principal Paid</th>
+            <th>Interest Paid</th>
+            <th><span class="jargon">Levered CF<span class="tip">Levered cash flow: the cash left after paying all operating expenses and debt service. This is the actual money in your pocket each year.</span></span></th>
+            <th>Property Value</th>
+            <th>Loan Balance</th>
+            <th>Equity</th>
+          </tr>
+        </thead>
+        <tbody id="dcf-detail-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: SUMMARY METRICS                                   -->
+<!-- ============================================================ -->
+<section class="card" id="sec-summary">
+  <span class="section-num">Section 6</span>
+  <h2>investment summary</h2>
+  <p class="desc">Key metrics to evaluate your ADU investment. Hover over any term to learn what it means.</p>
+
+  <div class="metrics-grid" id="summary-metrics">
+    <div class="metric-card">
+      <div class="metric-value" id="sum-cap-rate">0%</div>
+      <div class="metric-label"><span class="jargon">Cap rate<span class="tip">Capitalization rate: year 1 NOI divided by total investment. Measures the property's unleveraged return. Higher is better.</span></span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="sum-coc">0%</div>
+      <div class="metric-label"><span class="jargon">Cash-on-cash<span class="tip">Cash-on-cash return: year 1 pre-tax cash flow divided by your total cash invested. Shows what your actual cash earns.</span></span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="sum-dscr">0.00x</div>
+      <div class="metric-label"><span class="jargon">DSCR<span class="tip">Debt service coverage ratio: NOI divided by annual loan payments. Banks want 1.25x or higher. Below 1.0 means you can't cover the mortgage from rent.</span></span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="sum-irr">0%</div>
+      <div class="metric-label"><span class="jargon">IRR<span class="tip">Internal rate of return: the annualized return on your investment accounting for all cash flows over time. The gold-standard return metric.</span></span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="sum-npv">$0</div>
+      <div class="metric-label"><span class="jargon">NPV<span class="tip">Net present value: the total value of all future cash flows discounted to today's dollars, minus your initial investment. Positive means good deal.</span></span> (@ 8%)</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" id="sum-moic">0.0x</div>
+      <div class="metric-label"><span class="jargon">MOIC<span class="tip">Multiple on invested capital: total cash returned divided by total cash invested. 2.0x means you doubled your money.</span></span></div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <h3>Year 1 Returns Breakdown</h3>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-value" id="sum-y1-noi">$0</div>
+        <div class="metric-label">Net operating income</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="sum-y1-principal">$0</div>
+        <div class="metric-label">Principal paydown</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="sum-y1-tax">$0</div>
+        <div class="metric-label">Est. tax savings</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="sum-y1-appreciation">$0</div>
+        <div class="metric-label">Appreciation</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- GLOSSARY                                                      -->
+<!-- ============================================================ -->
+<section class="card" id="sec-glossary">
+  <span class="section-num">Reference</span>
+  <h2>glossary</h2>
+  <p class="desc">Plain-English explanations for every financial and real estate term used in this model.</p>
+
+  <div class="glossary-grid">
+    <div class="glossary-item"><strong>ADU</strong><p>Accessory dwelling unit: a secondary home on a single-family lot (backyard cottage, in-law suite, converted garage).</p></div>
+    <div class="glossary-item"><strong>NOI</strong><p>Net operating income: rent collected minus operating expenses. Does not include mortgage payments.</p></div>
+    <div class="glossary-item"><strong>Cap Rate</strong><p>Capitalization rate: year 1 NOI divided by purchase price. A quick measure of a property's yield without leverage.</p></div>
+    <div class="glossary-item"><strong>DSCR</strong><p>Debt service coverage ratio: NOI divided by annual mortgage. Banks want 1.25x or higher. Below 1.0x means rent doesn't cover the mortgage.</p></div>
+    <div class="glossary-item"><strong>IRR</strong><p>Internal rate of return: your annualized return including all cash flows and the sale. The "true" return metric.</p></div>
+    <div class="glossary-item"><strong>NPV</strong><p>Net present value: sum of all future cash flows, discounted to today's dollars, minus what you invested.</p></div>
+    <div class="glossary-item"><strong>MOIC</strong><p>Multiple on invested capital: total cash back divided by total cash in. 2.0x means you doubled your money.</p></div>
+    <div class="glossary-item"><strong>GPR</strong><p>Gross potential rent: the max rent if all units are occupied 100% of the time.</p></div>
+    <div class="glossary-item"><strong>EGI</strong><p>Effective gross income: GPR minus vacancy. The realistic income number.</p></div>
+    <div class="glossary-item"><strong>LTV</strong><p>Loan-to-value: the percentage of property value the bank lends. 75% LTV means a 25% down payment.</p></div>
+    <div class="glossary-item"><strong>DCF</strong><p>Discounted cash flow: a valuation method based on projected future cash flows adjusted for time value of money.</p></div>
+    <div class="glossary-item"><strong>Amortization</strong><p>Paying off a loan over time with regular payments. A 30-year amortization means 360 monthly payments.</p></div>
+    <div class="glossary-item"><strong>Depreciation</strong><p>A tax deduction for the "wear and tear" on a building. Residential property uses 27.5 years straight-line on the building (not land).</p></div>
+    <div class="glossary-item"><strong>CapEx</strong><p>Capital expenditures: big-ticket items like a new roof, HVAC, or appliances. Not day-to-day maintenance.</p></div>
+    <div class="glossary-item"><strong>OpEx</strong><p>Operating expenses: the recurring costs to run the property, including management, maintenance, taxes, insurance, and reserves.</p></div>
+    <div class="glossary-item"><strong>Vacancy Rate</strong><p>The percentage of time your unit sits empty between tenants. 5% is roughly 2.5 weeks per year vacant.</p></div>
+    <div class="glossary-item"><strong>Cash-on-Cash</strong><p>Annual pre-tax cash flow divided by total cash you invested. Shows what your actual dollars earn each year.</p></div>
+    <div class="glossary-item"><strong>JADU</strong><p>Junior ADU: a small unit (500 sqft or less) created inside an existing home. Lower cost but must share utilities.</p></div>
+  </div>
+</section>
+
+<div class="export-bar">
+  <button class="btn btn-export" onclick="exportXLSX()">Export .xlsx</button>
+</div>
+
+<footer style="text-align:center;padding:24px 0 12px;font-size:0.75rem;color:var(--chrome-dim);letter-spacing:1px;">&copy; 2026 m.lee</footer>
+
+</div><!-- /container -->
+
+<script>
+// ================================================================
+// MUCH ADU ABOUT NOTHING — Financial Engine
+// ================================================================
+
+// ===== MOBILE NAV =====
+function toggleMobileNav() {
+  const nav = document.getElementById('mobile-nav');
+  const btn = document.getElementById('hamburger-btn');
+  const isOpen = nav.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+// ===== THEME TOGGLE =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.classList.toggle('light');
+  document.getElementById('theme-toggle').textContent = isLight ? '\u2600' : '\u263E';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
+// Restore saved theme
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') {
+    document.documentElement.classList.add('light');
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('theme-toggle').textContent = '\u2600';
+    });
+  }
+})();
+
+// ===== HELPERS =====
+const $ = id => document.getElementById(id);
+const num = id => parseFloat($(id).value) || 0;
+const fmt = n => n.toLocaleString('en-US', {maximumFractionDigits: 0});
+const fmtD = n => '$' + fmt(Math.round(n));
+const fmtPct = (n, d=1) => n.toFixed(d) + '%';
+
+function setToggle(btn) {
+  const group = btn.parentElement;
+  group.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function getToggleVal(groupId) {
+  const group = $(groupId);
+  if (!group) return null;
+  const active = group.querySelector('button.active');
+  return active ? active.dataset.val : null;
+}
+
+// ===== SECTION 1: FEASIBILITY =====
+function updateFeasibility() {
+  const checks = document.querySelectorAll('#feasibility-checklist input[type="checkbox"]');
+  let count = 0;
+  checks.forEach(c => { if (c.checked) count++; });
+  const total = checks.length;
+  const pct = count / total;
+  const el = $('feasibility-result');
+
+  if (count === 0) {
+    el.innerHTML = '<span class="score-badge score-red">Check items above to see your score</span>';
+  } else if (pct >= 0.83) {
+    el.innerHTML = `<span class="score-badge score-green">Strong Candidate (${count}/${total})</span><div class="result-text green">Your property looks great for an ADU. Proceed to cost estimation.</div>`;
+  } else if (pct >= 0.5) {
+    el.innerHTML = `<span class="score-badge score-yellow">Possible, Needs Investigation (${count}/${total})</span><div class="result-text yellow">There are some potential issues. Consult a local ADU specialist for the unchecked items.</div>`;
+  } else {
+    el.innerHTML = `<span class="score-badge score-red">Challenging (${count}/${total})</span><div class="result-text red">Several feasibility concerns. An ADU may still be possible, but expect extra cost and complexity.</div>`;
+  }
+}
+
+// ===== SECTION 2: LEGAL =====
+const legalData = {
+  CA: { name: 'California', byRight: true, notes: 'CA has the most permissive ADU laws. Most ADUs are approved by-right with ministerial review. No owner-occupancy for ADUs (JADUs may require it). Max 1,200 sqft.', timelines: { detached: '6-9 months', attached: '5-8 months', garage: '3-6 months', jadu: '2-4 months' } },
+  OR: { name: 'Oregon', byRight: true, notes: 'Oregon allows ADUs by-right on any residential lot. No off-street parking required. No owner-occupancy requirement.', timelines: { detached: '6-10 months', attached: '5-8 months', garage: '3-6 months', jadu: '3-5 months' } },
+  WA: { name: 'Washington', byRight: true, notes: 'WA allows 2 ADUs per lot in most cities. No owner-occupancy or parking requirements in many jurisdictions.', timelines: { detached: '7-11 months', attached: '6-9 months', garage: '4-7 months', jadu: '3-5 months' } },
+  TX: { name: 'Texas', byRight: false, notes: 'ADU rules vary by city in Texas. Austin allows ADUs city-wide. Other cities may require conditional use permits. Check your specific municipality.', timelines: { detached: '8-12 months', attached: '6-10 months', garage: '4-7 months', jadu: '3-6 months' } },
+  CO: { name: 'Colorado', byRight: false, notes: 'Denver and some CO cities allow ADUs. Rules vary significantly by municipality. Some require owner-occupancy.', timelines: { detached: '8-12 months', attached: '6-10 months', garage: '4-8 months', jadu: '3-6 months' } }
+};
+
+function updateLegal() {
+  const state = $('legal-state').value;
+  const type = $('legal-type').value;
+  const data = legalData[state];
+  const timeline = data.timelines[type];
+
+  $('timeline-label').textContent = timeline;
+  const typeName = type === 'jadu' ? 'JADUs' : type.charAt(0).toUpperCase() + type.slice(1) + ' ADUs';
+  const byRightNote = data.byRight ? ' Approved by-right in most cases.' : ' May require discretionary review.';
+  $('timeline-detail').textContent = `${typeName} in ${data.name} typically take ${timeline} from plans to move-in.${byRightNote}`;
+
+  const months = parseInt(timeline.split('-')[1]) || 6;
+  $('timeline-fill').style.width = Math.min(months / 12 * 100, 100) + '%';
+}
+
+// ===== SECTION 3: COST ESTIMATOR =====
+const costPerSqft = { stick: 300, prefab: 225, garage: 150 };
+
+function updateCost() {
+  const sqft = num('cost-sqft');
+  $('cost-sqft-display').textContent = sqft;
+
+  const type = getToggleVal('toggle-construction') || 'stick';
+  const beds = parseInt(getToggleVal('toggle-beds') || '1');
+  const baths = parseInt(getToggleVal('toggle-baths') || '1');
+
+  const bedLabel = beds === 0 ? 'Studio' : beds + ' Bed';
+  $('rent-config').value = bedLabel + ' / ' + baths + ' Bath';
+
+  const baseCost = costPerSqft[type] * sqft;
+  const sitePrep = type === 'garage' ? sqft * 15 : sqft * 35;
+  const utilities = type === 'garage' ? 5000 : 15000 + (sqft > 600 ? 5000 : 0);
+  const permits = type === 'jadu' ? 3000 : 8000 + (sqft > 800 ? 4000 : 0);
+  const archEng = type === 'garage' ? 5000 : 12000 + (beds >= 2 ? 3000 : 0);
+  const subtotal = baseCost + sitePrep + utilities + permits + archEng;
+  const contingency = subtotal * 0.12;
+  const total = subtotal + contingency;
+
+  const items = [
+    ['Base Construction (' + fmtD(costPerSqft[type]) + '/sqft)', baseCost],
+    ['Site Prep & Foundation', sitePrep],
+    ['Utility Connections', utilities],
+    ['Permits & Fees', permits],
+    ['Architecture & Engineering', archEng],
+    ['Contingency (12%)', contingency]
+  ];
+
+  $('cost-breakdown-list').innerHTML = items.map(([label, val]) =>
+    `<li><span class="cost-label">${label}</span><span class="cost-value">${fmtD(val)}</span></li>`
+  ).join('');
+
+  $('cost-total-value').textContent = fmtD(total);
+  const low = Math.round(total * 0.85);
+  const high = Math.round(total * 1.2);
+  $('cost-range-text').textContent = `Range: ${fmtD(low)} to ${fmtD(high)}`;
+
+  $('dcf-adu-cost').value = Math.round(total);
+  updateAll();
+}
+
+// ===== SECTION 4: RENTAL INCOME =====
+function updateRent() {
+  const monthly = num('rent-monthly');
+  const mainMonthly = num('rent-main');
+  const vacancy = num('rent-vacancy') / 100;
+
+  const annualADU = monthly * 12;
+  const annualTotal = (monthly + mainMonthly) * 12;
+  const egi = annualTotal * (1 - vacancy);
+
+  $('rent-annual-adu').textContent = fmtD(annualADU);
+  $('rent-annual-total').textContent = fmtD(annualTotal);
+  $('rent-egi').textContent = fmtD(egi);
+}
+
+// ===== SECTION 5: DCF ENGINE =====
+
+function calcMonthlyPayment(principal, annualRate, years) {
+  if (principal <= 0 || annualRate <= 0) return 0;
+  const r = annualRate / 12;
+  const n = years * 12;
+  return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+function calcLoanBalance(principal, annualRate, years, monthsPaid) {
+  if (principal <= 0 || annualRate <= 0) return 0;
+  const r = annualRate / 12;
+  const n = years * 12;
+  const pmt = calcMonthlyPayment(principal, annualRate, years);
+  return principal * Math.pow(1 + r, monthsPaid) - pmt * (Math.pow(1 + r, monthsPaid) - 1) / r;
+}
+
+function buildCashFlows() {
+  const purchasePrice = num('dcf-purchase');
+  const aduCost = num('dcf-adu-cost');
+  const totalInvest = purchasePrice + aduCost;
+  $('dcf-total-invest').value = totalInvest;
+
+  const holdYears = Math.max(1, Math.min(30, Math.round(num('dcf-hold'))));
+  const rentGrowth = num('dcf-rent-growth') / 100;
+  const expenseRatio = num('dcf-expense-ratio') / 100;
+  const appreciation = num('dcf-appreciation') / 100;
+  const taxRate = num('dcf-tax-rate') / 100;
+  const insuranceYr1 = num('dcf-insurance');
+  const reservesYr1 = num('dcf-reserves');
+  const mgmtFee = num('dcf-mgmt') / 100;
+  const expenseGrowth = num('dcf-expense-growth') / 100;
+  const saleCostsPct = num('dcf-sale-costs') / 100;
+  const units = 2;
+
+  const ltv = num('dcf-ltv') / 100;
+  const intRate = num('dcf-rate') / 100;
+  const amortYears = num('dcf-amort');
+  const closingPct = num('dcf-closing') / 100;
+
+  const incomeTaxRate = num('dcf-income-tax') / 100;
+  const landPct = num('dcf-land-pct') / 100;
+  const capGainsTax = num('dcf-cap-gains') / 100;
+
+  const loanAmount = totalInvest * ltv;
+  const equity = totalInvest * (1 - ltv);
+  const closingCosts = totalInvest * closingPct;
+  const cashInvested = equity + closingCosts;
+  const monthlyPmt = calcMonthlyPayment(loanAmount, intRate, amortYears);
+  const annualDebt = monthlyPmt * 12;
+
+  const depreciableBasis = totalInvest * (1 - landPct);
+  const annualDepr = depreciableBasis / 27.5;
+
+  const monthlyADU = num('rent-monthly');
+  const monthlyMain = num('rent-main');
+  const vacancy = num('rent-vacancy') / 100;
+
+  const years = [];
+
+  for (let yr = 1; yr <= holdYears; yr++) {
+    const growthFactor = Math.pow(1 + rentGrowth, yr - 1);
+    const expGrowthFactor = Math.pow(1 + expenseGrowth, yr - 1);
+    const gpr = (monthlyADU + monthlyMain) * 12 * growthFactor;
+    const vacancyLoss = gpr * vacancy;
+    const egi = gpr - vacancyLoss;
+
+    const propTax = totalInvest * taxRate * expGrowthFactor;
+    const insurance = insuranceYr1 * expGrowthFactor;
+    const mgmt = egi * mgmtFee;
+    const maintenance = egi * (expenseRatio - mgmtFee > 0 ? expenseRatio - mgmtFee : 0.04);
+    const reserveTotal = reservesYr1 * units * expGrowthFactor;
+    const totalOpEx = propTax + insurance + mgmt + maintenance + reserveTotal;
+
+    const noi = egi - totalOpEx;
+
+    const startMonth = (yr - 1) * 12;
+    const endMonth = yr * 12;
+    const balanceStart = calcLoanBalance(loanAmount, intRate, amortYears, startMonth);
+    const balanceEnd = calcLoanBalance(loanAmount, intRate, amortYears, endMonth);
+    const principalPaid = balanceStart - balanceEnd;
+    const interestPaid = annualDebt - principalPaid;
+
+    const leveredCF = noi - annualDebt;
+
+    const propValue = totalInvest * Math.pow(1 + appreciation, yr);
+
+    const taxableIncome = noi - interestPaid - annualDepr;
+    const taxSavings = taxableIncome < 0 ? Math.abs(taxableIncome) * incomeTaxRate : -taxableIncome * incomeTaxRate;
+
+    years.push({
+      year: yr, gpr, vacancyLoss, egi, totalOpEx, noi,
+      annualDebt, principalPaid, interestPaid, leveredCF,
+      propValue, loanBalance: balanceEnd, equity: propValue - balanceEnd,
+      taxSavings, annualDepr
+    });
+  }
+
+  return {
+    years, holdYears, cashInvested, loanAmount, annualDebt,
+    totalInvest, equity, closingCosts, depreciableBasis, annualDepr,
+    ltv, intRate, amortYears, appreciation, capGainsTax, landPct, incomeTaxRate, saleCostsPct
+  };
+}
+
+function renderDCF(data) {
+  const { years, holdYears, cashInvested, annualDebt } = data;
+
+  let html = '';
+  years.forEach(y => {
+    html += `<tr>
+      <td>${y.year}</td>
+      <td>${fmtD(y.gpr)}</td>
+      <td class="negative">(${fmtD(y.vacancyLoss)})</td>
+      <td>${fmtD(y.egi)}</td>
+      <td class="negative">(${fmtD(y.totalOpEx)})</td>
+      <td class="${y.noi >= 0 ? 'positive' : 'negative'}">${fmtD(y.noi)}</td>
+      <td class="negative">(${fmtD(annualDebt)})</td>
+      <td class="${y.leveredCF >= 0 ? 'positive' : 'negative'}">${fmtD(y.leveredCF)}</td>
+    </tr>`;
+  });
+  $('dcf-tbody').innerHTML = html;
+
+  html = '';
+  years.forEach(y => {
+    html += `<tr>
+      <td>${y.year}</td>
+      <td class="${y.noi >= 0 ? 'positive' : 'negative'}">${fmtD(y.noi)}</td>
+      <td>(${fmtD(annualDebt)})</td>
+      <td class="positive">${fmtD(y.principalPaid)}</td>
+      <td>(${fmtD(y.interestPaid)})</td>
+      <td class="${y.leveredCF >= 0 ? 'positive' : 'negative'}">${fmtD(y.leveredCF)}</td>
+      <td>${fmtD(y.propValue)}</td>
+      <td>${fmtD(y.loanBalance)}</td>
+      <td class="positive">${fmtD(y.equity)}</td>
+    </tr>`;
+  });
+  const last = years[years.length - 1];
+  const saleCosts = last.propValue * data.saleCostsPct;
+  const saleProceeds = last.propValue - saleCosts - last.loanBalance;
+  html += `<tr style="font-weight:700;border-top:2px solid var(--magenta)">
+    <td>Sale</td><td colspan="4">Net proceeds (after ${fmtPct(data.saleCostsPct*100,0)} sale costs &amp; loan payoff)</td>
+    <td class="positive">${fmtD(saleProceeds)}</td>
+    <td>${fmtD(last.propValue)}</td><td>${fmtD(last.loanBalance)}</td>
+    <td class="positive">${fmtD(saleProceeds)}</td>
+  </tr>`;
+  $('dcf-detail-tbody').innerHTML = html;
+}
+
+// ===== SECTION 6: SUMMARY METRICS =====
+function calcIRR(cashFlows, guess = 0.1) {
+  let rate = guess;
+  for (let i = 0; i < 200; i++) {
+    let npv = 0, dnpv = 0;
+    for (let t = 0; t < cashFlows.length; t++) {
+      npv += cashFlows[t] / Math.pow(1 + rate, t);
+      dnpv -= t * cashFlows[t] / Math.pow(1 + rate, t + 1);
+    }
+    if (Math.abs(dnpv) < 1e-10) break;
+    const newRate = rate - npv / dnpv;
+    if (Math.abs(newRate - rate) < 1e-8) { rate = newRate; break; }
+    rate = newRate;
+  }
+  return isFinite(rate) ? rate : 0;
+}
+
+function calcNPV(cashFlows, discountRate) {
+  let npv = 0;
+  for (let t = 0; t < cashFlows.length; t++) {
+    npv += cashFlows[t] / Math.pow(1 + discountRate, t);
+  }
+  return npv;
+}
+
+function renderSummary(data) {
+  const { years, cashInvested, annualDebt, totalInvest } = data;
+  if (years.length === 0) return;
+
+  const y1 = years[0];
+  const last = years[years.length - 1];
+
+  const capRate = y1.noi / totalInvest * 100;
+  $('sum-cap-rate').textContent = fmtPct(capRate);
+  $('sum-cap-rate').style.color = capRate >= 5 ? 'var(--green)' : capRate >= 3 ? 'var(--yellow)' : 'var(--red)';
+
+  const coc = y1.leveredCF / cashInvested * 100;
+  $('sum-coc').textContent = fmtPct(coc);
+  $('sum-coc').style.color = coc >= 8 ? 'var(--green)' : coc >= 0 ? 'var(--yellow)' : 'var(--red)';
+
+  const dscr = y1.noi / annualDebt;
+  $('sum-dscr').textContent = (isFinite(dscr) ? dscr.toFixed(2) : '0.00') + 'x';
+  $('sum-dscr').style.color = dscr >= 1.25 ? 'var(--green)' : dscr >= 1.0 ? 'var(--yellow)' : 'var(--red)';
+
+  const saleCosts = last.propValue * data.saleCostsPct;
+  const saleProceeds = last.propValue - saleCosts - last.loanBalance;
+  const cfArray = [-cashInvested];
+  years.forEach((y, i) => {
+    let cf = y.leveredCF;
+    if (i === years.length - 1) cf += saleProceeds;
+    cfArray.push(cf);
+  });
+
+  const irr = calcIRR(cfArray) * 100;
+  $('sum-irr').textContent = fmtPct(irr);
+  $('sum-irr').style.color = irr >= 12 ? 'var(--green)' : irr >= 6 ? 'var(--yellow)' : 'var(--red)';
+
+  const npv = calcNPV(cfArray, 0.08);
+  $('sum-npv').textContent = fmtD(npv);
+  $('sum-npv').style.color = npv >= 0 ? 'var(--green)' : 'var(--red)';
+
+  const totalCashReturned = years.reduce((sum, y) => sum + y.leveredCF, 0) + saleProceeds;
+  const moic = totalCashReturned / cashInvested;
+  $('sum-moic').textContent = (isFinite(moic) ? moic.toFixed(2) : '0.00') + 'x';
+  $('sum-moic').style.color = moic >= 2 ? 'var(--green)' : moic >= 1 ? 'var(--yellow)' : 'var(--red)';
+
+  $('sum-y1-noi').textContent = fmtD(y1.noi);
+  $('sum-y1-principal').textContent = fmtD(y1.principalPaid);
+  $('sum-y1-tax').textContent = fmtD(y1.taxSavings);
+  const y1Appreciation = totalInvest * (num('dcf-appreciation') / 100);
+  $('sum-y1-appreciation').textContent = fmtD(y1Appreciation);
+}
+
+// ===== MASTER UPDATE =====
+function updateAll() {
+  updateRent();
+  const data = buildCashFlows();
+  renderDCF(data);
+  renderSummary(data);
+}
+
+// ===== XLSX EXPORT =====
+function exportXLSX() {
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Inputs
+  const inputs = [
+    ['ADUe diligence - investment model inputs', ''],
+    ['', ''],
+    ['PROPERTY & PURCHASE', ''],
+    ['Purchase Price', num('dcf-purchase')],
+    ['ADU Build Cost', num('dcf-adu-cost')],
+    ['Total Investment', num('dcf-purchase') + num('dcf-adu-cost')],
+    ['', ''],
+    ['RENTAL INCOME', ''],
+    ['Main House Monthly Rent', num('rent-main')],
+    ['ADU Monthly Rent', num('rent-monthly')],
+    ['Vacancy Rate', num('rent-vacancy') / 100],
+    ['', ''],
+    ['OPERATING ASSUMPTIONS', ''],
+    ['Hold Period (years)', num('dcf-hold')],
+    ['Annual Rent Growth', num('dcf-rent-growth') / 100],
+    ['Expense Ratio', num('dcf-expense-ratio') / 100],
+    ['Annual Appreciation', num('dcf-appreciation') / 100],
+    ['Property Tax Rate', num('dcf-tax-rate') / 100],
+    ['Annual Insurance', num('dcf-insurance')],
+    ['Reserves ($/unit/yr)', num('dcf-reserves')],
+    ['Management Fee', num('dcf-mgmt') / 100],
+    ['Annual Expense Growth', num('dcf-expense-growth') / 100],
+    ['Sale Costs', num('dcf-sale-costs') / 100],
+    ['', ''],
+    ['LOAN TERMS', ''],
+    ['LTV', num('dcf-ltv') / 100],
+    ['Interest Rate', num('dcf-rate') / 100],
+    ['Amortization (years)', num('dcf-amort')],
+    ['Closing Costs', num('dcf-closing') / 100],
+    ['', ''],
+    ['TAX ASSUMPTIONS', ''],
+    ['Marginal Income Tax Rate', num('dcf-income-tax') / 100],
+    ['Land Value %', num('dcf-land-pct') / 100],
+    ['Capital Gains Tax Rate', num('dcf-cap-gains') / 100],
+  ];
+  const wsInputs = XLSX.utils.aoa_to_sheet(inputs);
+  wsInputs['!cols'] = [{wch: 28}, {wch: 16}];
+  [10,14,15,16,17,18,19,25,26,28,32,33,34].forEach(r => {
+    const cell = wsInputs[XLSX.utils.encode_cell({r, c:1})];
+    if (cell) cell.z = '0.00%';
+  });
+  [3,4,5,8,9,20,21].forEach(r => {
+    const cell = wsInputs[XLSX.utils.encode_cell({r, c:1})];
+    if (cell) cell.z = '$#,##0';
+  });
+  XLSX.utils.book_append_sheet(wb, wsInputs, 'Inputs');
+
+  // Sheet 2: ADU Feasibility
+  const feasItems = ['Lot size meets minimum', 'Room for setbacks', 'Flat terrain', 'Independent access', 'Utilities reachable', 'Build space available'];
+  const feasChecks = document.querySelectorAll('#feasibility-checklist input[type="checkbox"]');
+  const feasData = [['ADU Feasibility Checklist', 'Result'], ['', '']];
+  feasItems.forEach((item, i) => {
+    feasData.push([item, feasChecks[i].checked ? 'Yes' : 'No']);
+  });
+  let feasCount = 0;
+  feasChecks.forEach(c => { if (c.checked) feasCount++; });
+  feasData.push(['', ''], ['Score', feasCount + '/' + feasChecks.length]);
+  const wsFeas = XLSX.utils.aoa_to_sheet(feasData);
+  wsFeas['!cols'] = [{wch: 30}, {wch: 10}];
+  XLSX.utils.book_append_sheet(wb, wsFeas, 'ADU Feasibility');
+
+  // Sheet 3: Cash Flow Projection (income flow)
+  const data = buildCashFlows();
+  const cfHeader = ['Year', 'GPR', 'Vacancy', 'EGI', 'OpEx', 'NOI', 'Debt Service', 'Cash Flow'];
+  const cfData = [cfHeader];
+  data.years.forEach(y => {
+    cfData.push([
+      y.year, y.gpr, -y.vacancyLoss, y.egi, -y.totalOpEx, y.noi,
+      -data.annualDebt, y.leveredCF
+    ]);
+  });
+
+  const wsCF = XLSX.utils.aoa_to_sheet(cfData);
+  wsCF['!cols'] = [{wch: 6}].concat(Array(7).fill({wch: 14}));
+  for (let r = 1; r < cfData.length; r++) {
+    for (let c = 1; c < cfHeader.length; c++) {
+      const cell = wsCF[XLSX.utils.encode_cell({r, c})];
+      if (cell && typeof cell.v === 'number') cell.z = '$#,##0';
+    }
+  }
+  XLSX.utils.book_append_sheet(wb, wsCF, 'Cash Flow');
+
+  // Sheet 4: Detailed Cash Flow (wealth building + sale)
+  const last = data.years[data.years.length - 1];
+  const xlsSaleCosts = last.propValue * data.saleCostsPct;
+  const xlsSaleProceeds = last.propValue - xlsSaleCosts - last.loanBalance;
+  const detHeader = ['Year', 'NOI', 'Debt Service', 'Principal Paid', 'Interest Paid', 'Levered CF', 'Property Value', 'Loan Balance', 'Equity'];
+  const detData = [detHeader];
+  data.years.forEach(y => {
+    detData.push([
+      y.year, y.noi, -data.annualDebt, y.principalPaid, -y.interestPaid,
+      y.leveredCF, y.propValue, y.loanBalance, y.equity
+    ]);
+  });
+  detData.push(['Sale', '', '', '', 'Sale costs: ' + fmtD(xlsSaleCosts), xlsSaleProceeds, last.propValue, last.loanBalance, xlsSaleProceeds]);
+
+  const wsDet = XLSX.utils.aoa_to_sheet(detData);
+  wsDet['!cols'] = [{wch: 6}].concat(Array(8).fill({wch: 14}));
+  for (let r = 1; r < detData.length; r++) {
+    for (let c = 1; c < detHeader.length; c++) {
+      const cell = wsDet[XLSX.utils.encode_cell({r, c})];
+      if (cell && typeof cell.v === 'number') cell.z = '$#,##0';
+    }
+  }
+  XLSX.utils.book_append_sheet(wb, wsDet, 'Detailed Cash Flow');
+
+  // Sheet 5: Summary
+  const y1 = data.years[0];
+  const capRate = y1.noi / data.totalInvest;
+  const coc = y1.leveredCF / data.cashInvested;
+  const dscr = y1.noi / data.annualDebt;
+
+  const cfArray = [-data.cashInvested];
+  data.years.forEach((y, i) => {
+    let cf = y.leveredCF;
+    if (i === data.years.length - 1) cf += xlsSaleProceeds;
+    cfArray.push(cf);
+  });
+  const irr = calcIRR(cfArray);
+  const npv = calcNPV(cfArray, 0.08);
+  const totalCashReturned = data.years.reduce((s, y) => s + y.leveredCF, 0) + xlsSaleProceeds;
+  const moic = totalCashReturned / data.cashInvested;
+
+  const summaryData = [
+    ['Investment Summary', ''],
+    ['', ''],
+    ['KEY METRICS', ''],
+    ['Cap Rate', capRate],
+    ['Cash-on-Cash Return', coc],
+    ['DSCR', dscr],
+    ['IRR', irr],
+    ['NPV (@ 8% discount)', npv],
+    ['MOIC', moic],
+    ['', ''],
+    ['YEAR 1 BREAKDOWN', ''],
+    ['Net Operating Income', y1.noi],
+    ['Principal Paydown', y1.principalPaid],
+    ['Est. Tax Savings', y1.taxSavings],
+    ['Appreciation', data.totalInvest * (num('dcf-appreciation') / 100)],
+    ['', ''],
+    ['INVESTMENT', ''],
+    ['Total Investment', data.totalInvest],
+    ['Cash Invested (Equity + Closing)', data.cashInvested],
+    ['Loan Amount', data.loanAmount],
+  ];
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+  wsSummary['!cols'] = [{wch: 30}, {wch: 16}];
+  [3,4,6].forEach(r => {
+    const cell = wsSummary[XLSX.utils.encode_cell({r, c:1})];
+    if (cell) cell.z = '0.00%';
+  });
+  [7,11,12,13,14,17,18,19].forEach(r => {
+    const cell = wsSummary[XLSX.utils.encode_cell({r, c:1})];
+    if (cell) cell.z = '$#,##0';
+  });
+  [5,8].forEach(r => {
+    const cell = wsSummary[XLSX.utils.encode_cell({r, c:1})];
+    if (cell) cell.z = '0.00x';
+  });
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  const today = new Date();
+  const dateStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb, dateStr + '_model.xlsx');
+}
+
+// ===== ANIMATIONS =====
+
+// Card reveal on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.card').forEach((card, i) => {
+  card.style.transitionDelay = (i * 0.05) + 's';
+  observer.observe(card);
+});
+
+// Checklist flash on check
+document.querySelectorAll('.checklist input[type="checkbox"]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const li = cb.closest('li');
+    li.classList.add('flash');
+    setTimeout(() => li.classList.remove('flash'), 400);
+  });
+});
+
+// ===== TOUCH-FRIENDLY TOOLTIPS =====
+// Tap to show, tap elsewhere to dismiss
+document.addEventListener('touchstart', function(e) {
+  const jargon = e.target.closest('.jargon');
+  // Dismiss all other open tooltips
+  document.querySelectorAll('.jargon.touch-active').forEach(el => {
+    if (el !== jargon) el.classList.remove('touch-active');
+  });
+  if (jargon && !jargon.closest('th')) {
+    e.preventDefault();
+    jargon.classList.toggle('touch-active');
+  }
+}, { passive: false });
+
+// ===== TABLE HEADER TOOLTIPS (JS-based, fixed position) =====
+const floatingTip = document.createElement('div');
+floatingTip.className = 'floating-tooltip';
+floatingTip.style.display = 'none';
+document.body.appendChild(floatingTip);
+
+function showTableTooltip(jargonEl, e) {
+  const tipEl = jargonEl.querySelector('.tip');
+  if (!tipEl) return;
+  floatingTip.textContent = tipEl.textContent;
+  floatingTip.style.display = 'block';
+  const rect = jargonEl.getBoundingClientRect();
+  let left = rect.left + rect.width / 2 - 130;
+  if (left < 8) left = 8;
+  if (left + 260 > window.innerWidth) left = window.innerWidth - 268;
+  let top = rect.bottom + 8;
+  if (top + 80 > window.innerHeight) top = rect.top - 80;
+  floatingTip.style.left = left + 'px';
+  floatingTip.style.top = top + 'px';
+}
+
+function hideTableTooltip() {
+  floatingTip.style.display = 'none';
+}
+
+document.querySelectorAll('th .jargon').forEach(jargon => {
+  jargon.addEventListener('mouseenter', function(e) { showTableTooltip(this, e); });
+  jargon.addEventListener('mouseleave', hideTableTooltip);
+  jargon.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const isVisible = floatingTip.style.display === 'block';
+    hideTableTooltip();
+    if (!isVisible || floatingTip._source !== this) {
+      showTableTooltip(this, e);
+      floatingTip._source = this;
+    }
+  }, { passive: false });
+});
+
+// Dismiss floating tooltip on scroll or tap elsewhere
+document.addEventListener('scroll', hideTableTooltip, true);
+document.addEventListener('touchstart', function(e) {
+  if (!e.target.closest('th .jargon')) hideTableTooltip();
+});
+
+// ===== INIT =====
+updateLegal();
+updateCost();
+updateAll();
+</script>
+
+</body>
+</html>
