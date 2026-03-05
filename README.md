@@ -26,9 +26,7 @@ A beginner-friendly financial model for evaluating properties where an ADU (Acce
 Open `index.html` in any modern browser. No build tools or server required.
 
 ## Deploy
-```
-npx netlify-cli deploy --dir . --prod
-```
+Hosted on GitHub Pages: https://mal521.github.io/adue-diligence
 
 ## Tech
 - Vanilla HTML/CSS/JS (single file)

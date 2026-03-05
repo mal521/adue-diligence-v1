@@ -15,9 +15,9 @@ Original vaporwave design with Orbitron + Share Tech Mono fonts, dot grid, scanl
 - Backup of pre-redesign version saved as `index-original.html`
 
 ## Sister Sites
-- **ADU:** https://adue-diligence.netlify.app (this site)
-- **Investment Property:** https://investment-property-dd.netlify.app
-- **Multi-Family:** https://multifamily-dd.netlify.app
+- **ADU:** https://mal521.github.io/adue-diligence (this site)
+- **Single-Family:** https://mal521.github.io/single-family-dd
+- **Multi-Family:** https://mal521.github.io/multifamily-dd
 
 ## Key Files
 - `index.html` - entire app (single file)
@@ -25,6 +25,5 @@ Original vaporwave design with Orbitron + Share Tech Mono fonts, dot grid, scanl
 - `README.md` - project description
 
 ## Deployment
-- **URL:** https://adue-diligence.netlify.app
-- **Method:** `npx netlify-cli deploy --dir . --prod`
-- **Site ID:** 61c5fb89-8c1b-4cd3-87aa-35c9cb3d6d97
+- **URL:** https://mal521.github.io/adue-diligence
+- **Method:** GitHub Pages (auto-deploys from main branch)
